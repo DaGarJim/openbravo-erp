@@ -61,7 +61,7 @@ public class ResetPasswordWithTokenService extends WebServiceAbstractServlet {
             "Please provide a stronger one. Passwords must have at least 8 characters and contain at least three of the following: uppercase letters, lowercase letters, numbers and symbols.");
       }
 
-      String hql_token = "select user.id as userId, redeemed as isRedeemed, creationDate as created from ADUserPasswordResetToken where usertoken = :token";
+      String hql_token = "select user.id as userId, redeemed as isRedeemed, creationDate as created from ADUserPwdResetToken where usertoken = :token";
 
       Tuple tokenEntry = OBDal.getInstance()
           .getSession()
