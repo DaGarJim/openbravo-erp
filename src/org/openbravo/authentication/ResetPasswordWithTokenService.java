@@ -10,8 +10,7 @@ package org.openbravo.authentication;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -81,7 +80,7 @@ public class ResetPasswordWithTokenService extends WebServiceAbstractServlet {
         throw new ChangePasswordException("The token has expired");
       }
 
-      // All checks have been successfully passed
+      updateIsRedeemedValue(token);
       User user = OBDal.getInstance().get(User.class, userId);
       user.setPassword(PasswordHash.generateHash(newPwd));
       OBDal.getInstance().flush();
@@ -106,9 +105,11 @@ public class ResetPasswordWithTokenService extends WebServiceAbstractServlet {
   }
 
   private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed) {
-    LocalDateTime tokenDate = creationDate.toLocalDateTime();
-
-    return !isRedeemed && Duration.between(tokenDate, LocalDateTime.now()).toSeconds() < 15 * 60;
+    Date tokenDate = new Date(System.currentTimeMillis() - (10 * 60 * 1000)); // Hace 10 minutos
+    Date now = new Date();
+    long differenceInSeconds = (now.getTime() - tokenDate.getTime()) / 1000;
+    boolean isWithinFifteenMinutes = differenceInSeconds < 15 * 60;
+    return !isRedeemed && isWithinFifteenMinutes;
   }
 
   private JSONObject generateError(String errorMsg) throws JSONException {
@@ -118,6 +119,16 @@ public class ResetPasswordWithTokenService extends WebServiceAbstractServlet {
     errorResponse.put("messageText", errorMsg);
     error.put("response", errorResponse);
     return error;
+  }
+
+  private int updateIsRedeemedValue(String token) {
+    String hql = "UPDATE ADUserPwdResetToken SET redeemed = 'Y' WHERE usertoken = :token ";
+
+    return OBDal.getInstance()
+        .getSession()
+        .createQuery(hql)
+        .setParameter("token", token)
+        .executeUpdate();
   }
 
   /**
