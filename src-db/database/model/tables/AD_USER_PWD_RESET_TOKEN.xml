@@ -41,7 +41,7 @@
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="IS_REDEEMED" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
+      <column name="REDEEMED" primaryKey="false" required="true" type="CHAR" size="1" autoIncrement="false">
         <default><![CDATA[N]]></default>
         <onCreateDefault/>
       </column>

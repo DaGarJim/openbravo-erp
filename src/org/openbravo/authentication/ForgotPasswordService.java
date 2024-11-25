@@ -34,7 +34,7 @@ import org.openbravo.email.EmailEventManager;
 import org.openbravo.email.EmailUtils;
 import org.openbravo.mobile.core.process.WebServiceAbstractServlet;
 import org.openbravo.model.ad.access.User;
-import org.openbravo.model.ad.access.UserPasswordResetToken;
+import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.common.enterprise.EmailServerConfiguration;
 import org.openbravo.model.common.enterprise.Organization;
@@ -162,7 +162,7 @@ public class ForgotPasswordService extends WebServiceAbstractServlet {
 
   private String generateAndPersistToken(User user, Client client, Organization org) {
     String token = UUID.randomUUID().toString();
-    UserPasswordResetToken resetToken = OBProvider.getInstance().get(UserPasswordResetToken.class);
+    UserPwdResetToken resetToken = OBProvider.getInstance().get(UserPwdResetToken.class);
     resetToken.setClient(client);
     resetToken.setOrganization(org);
     resetToken.setUsertoken(token);
