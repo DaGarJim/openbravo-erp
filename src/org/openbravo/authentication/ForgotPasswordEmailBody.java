@@ -76,8 +76,8 @@ public class ForgotPasswordEmailBody extends BaseTemplateComponent {
   }
 
   @Override
-  protected Template getComponentTemplate() {
-    return OBDal.getInstance().get(Template.class, "B8ED789A54F74E798958D9ADD0ABCEBD");
+  protected Template getComponentTemplate() { // TODO: Get template based on email type
+    return OBDal.getInstance().get(Template.class, "8074C945916E49A88D7B8B0961246635");
   }
 
 }
