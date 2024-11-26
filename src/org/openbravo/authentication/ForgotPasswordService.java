@@ -9,6 +9,7 @@
 package org.openbravo.authentication;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,7 +34,6 @@ import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
 import org.openbravo.email.EmailEventManager;
 import org.openbravo.email.EmailUtils;
-import org.openbravo.mobile.core.process.WebServiceAbstractServlet;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
@@ -43,7 +44,7 @@ import org.openbravo.model.common.enterprise.Organization;
  * Loads into a core2 application the authentication provider configurations that are available for
  * that application
  */
-public class ForgotPasswordService extends WebServiceAbstractServlet {
+public class ForgotPasswordService extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
@@ -182,4 +183,12 @@ public class ForgotPasswordService extends WebServiceAbstractServlet {
     return String.format("http://localhost:3000/?token=%s", token); // TODO: Set custom url
   }
 
+  private void writeResult(HttpServletResponse response, String result) throws IOException {
+    response.setContentType("application/json;charset=UTF-8");
+    response.setHeader("Content-Type", "application/json;charset=UTF-8");
+
+    final Writer w = response.getWriter();
+    w.write(result);
+    w.close();
+  }
 }
