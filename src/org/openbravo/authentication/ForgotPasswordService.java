@@ -180,7 +180,7 @@ public class ForgotPasswordService extends HttpServlet {
   }
 
   private String generateChangePasswordURL(String token) {
-    return String.format("http://localhost:3000/?token=%s", token); // TODO: Set custom url
+    return String.format("http://localhost:3000/?changePassword=%s", token);
   }
 
   private void writeResult(HttpServletResponse response, String result) throws IOException {
