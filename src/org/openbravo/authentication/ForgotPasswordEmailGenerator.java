@@ -12,8 +12,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.email.EmailEventContentGenerator;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
@@ -27,9 +25,6 @@ import org.openbravo.erpCommon.utility.OBMessageUtils;
  */
 public class ForgotPasswordEmailGenerator implements EmailEventContentGenerator {
 
-  @Inject
-  private ForgotPasswordEmailBody body;
-
   @Override
   public String getSubject(Object data, String event) {
     String msg = "ForgottenPasswordSubject";
@@ -40,6 +35,7 @@ public class ForgotPasswordEmailGenerator implements EmailEventContentGenerator 
   @SuppressWarnings("unchecked")
   @Override
   public String getBody(Object data, String event) {
+    ForgotPasswordEmailBody body = new ForgotPasswordEmailBody();
     body.setData((Map<String, Object>) data);
     return body.generate();
   }
