@@ -171,7 +171,7 @@ public class ForgotPasswordService extends WebServiceAbstractServlet {
     resetToken.setClient(client);
     resetToken.setOrganization(org);
     resetToken.setUsertoken(token);
-    resetToken.setUser(user);
+    resetToken.setUserContact(user);
 
     OBDal.getInstance().save(resetToken);
     return token;
