@@ -32,9 +32,9 @@ import org.openbravo.mobile.core.process.WebServiceAbstractServlet;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.service.password.PasswordStrengthChecker;
 
-@SuppressWarnings("serial")
 public class ResetPasswordWithTokenService extends WebServiceAbstractServlet {
 
+  private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
   @Inject

@@ -43,8 +43,9 @@ import org.openbravo.model.common.enterprise.Organization;
  * Loads into a core2 application the authentication provider configurations that are available for
  * that application
  */
-@SuppressWarnings("serial")
 public class ForgotPasswordService extends WebServiceAbstractServlet {
+
+  private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
   public static final String EVT_FORGOT_PASSWORD = "forgotPassword";
 
