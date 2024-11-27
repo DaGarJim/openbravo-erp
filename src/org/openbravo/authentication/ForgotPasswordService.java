@@ -27,7 +27,6 @@ import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hibernate.criterion.Restrictions;
-import org.openbravo.base.exception.OBException;
 import org.openbravo.base.provider.OBProvider;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
@@ -103,6 +102,8 @@ public class ForgotPasswordService extends HttpServlet {
     } catch (JSONException ex) {
       log.error("Error parsing JSON", ex);
       result = new JSONObject(Map.of("error", ex.getMessage()));
+    } catch (ChangePasswordException ex) {
+      log.warn("Error with forgot password service", ex);
     } catch (Exception ex) {
       log.error("Error with forgot password service", ex);
       result = new JSONObject(Map.of("error", ex.getMessage()));
@@ -112,7 +113,7 @@ public class ForgotPasswordService extends HttpServlet {
     }
   }
 
-  private User getValidUser(String userOrEmail) throws OBException, Exception {
+  private User getValidUser(String userOrEmail) throws ChangePasswordException, Exception {
     List<User> users = OBDal.getInstance()
         .createCriteria(User.class)
         .add(Restrictions.or(Restrictions.eq(User.PROPERTY_USERNAME, userOrEmail),
@@ -123,11 +124,11 @@ public class ForgotPasswordService extends HttpServlet {
         .list();
 
     if (users == null || users.size() == 0) {
-      throw new OBException(
+      throw new ChangePasswordException(
           "Forgot password service: No user has the selected name or email configured");
     }
     if (users.size() > 1) {
-      throw new OBException(
+      throw new ChangePasswordException(
           "Forgot password service: More than one user has the same email configured");
     }
 
@@ -135,7 +136,7 @@ public class ForgotPasswordService extends HttpServlet {
 
     boolean userCompliesWithRules = checkUser(user);
     if (!userCompliesWithRules) {
-      throw new OBException(
+      throw new ChangePasswordException(
           "Forgot password service: The selected user does not comply with the expected rules");
     }
     return user;
@@ -154,8 +155,7 @@ public class ForgotPasswordService extends HttpServlet {
   }
 
   private void sendChangePasswordEmail(Organization org, Client client,
-      EmailServerConfiguration emailConfig, User user, String token)
-      throws OBException, EmailEventException {
+      EmailServerConfiguration emailConfig, User user, String token) throws EmailEventException {
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
     emailData.put("changePasswordURL", generateChangePasswordURL(token));
