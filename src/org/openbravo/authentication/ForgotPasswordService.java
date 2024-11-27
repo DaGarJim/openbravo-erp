@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.persistence.Tuple;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +60,7 @@ public class ForgotPasswordService extends HttpServlet {
     JSONObject result = new JSONObject();
     try {
       OBContext.setAdminMode(true);
+      result.put("isAuthenticated", true);
       JSONObject body = new JSONObject(
           request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
 
@@ -70,11 +72,13 @@ public class ForgotPasswordService extends HttpServlet {
 
       String strOrgId = body.optString("organization");
       if (strOrgId.isEmpty()) {
-        throw new Exception(OBMessageUtils.getI18NMessage("OrganizatioNotDefinedInTheRequest"));
+        throw new Exception(OBMessageUtils.getI18NMessage("OrganizationNotDefinedInTheRequest"));
       }
 
       String strClientId = body.optString("client");
       String terminalName = body.optString("terminalName");
+
+      checkTerminalAuthentication(strClientId, terminalName, result);
 
       Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
       Client client = OBDal.getInstance().get(Client.class, strClientId);
@@ -113,6 +117,30 @@ public class ForgotPasswordService extends HttpServlet {
     } finally {
       OBContext.restorePreviousMode();
       writeResult(response, new JSONObject(Map.of("response", result)).toString());
+    }
+  }
+
+  private void checkTerminalAuthentication(String strClientId, String terminalName,
+      JSONObject result) throws Exception {
+    String terminalAuth_hql = "select id from ADPreference where property = 'OBPOS_TerminalAuthentication' and value = 'Y' and client.id = :client";
+    Tuple terminalAuth = OBDal.getInstance()
+        .getSession()
+        .createQuery(terminalAuth_hql, Tuple.class)
+        .setParameter("client", strClientId)
+        .uniqueResult();
+
+    if (terminalAuth != null) {
+      String getLinkedTerminal_hql = "select id from OBPOS_Applications where value = :terminalName and islinked = true";
+      Tuple linkedTerminal = OBDal.getInstance()
+          .getSession()
+          .createQuery(getLinkedTerminal_hql, Tuple.class)
+          .setParameter("terminalName", terminalName)
+          .uniqueResult();
+      if (linkedTerminal == null) {
+        // The terminal is not linked and should be
+        result.put("isAuthenticated", false);
+        throw new Exception(OBMessageUtils.getI18NMessage("TerminalNotAuthenticated"));
+      }
     }
   }
 
