@@ -74,6 +74,7 @@ public class ForgotPasswordService extends HttpServlet {
       }
 
       String strClientId = body.optString("client");
+      String terminalName = body.optString("terminalName");
 
       Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
       Client client = OBDal.getInstance().get(Client.class, strClientId);
@@ -90,7 +91,7 @@ public class ForgotPasswordService extends HttpServlet {
         Runnable r = () -> {
           try {
             OBContext.setAdminMode(true);
-            sendChangePasswordEmail(org, client, emailConfig, user, token);
+            sendChangePasswordEmail(org, client, emailConfig, user, token, terminalName);
           } catch (EmailEventException ex) {
             log.error("Error sending the email", ex);
           } catch (Exception ex) {
@@ -157,10 +158,11 @@ public class ForgotPasswordService extends HttpServlet {
   }
 
   private void sendChangePasswordEmail(Organization org, Client client,
-      EmailServerConfiguration emailConfig, User user, String token) throws EmailEventException {
+      EmailServerConfiguration emailConfig, User user, String token, String terminalName)
+      throws EmailEventException {
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
-    emailData.put("changePasswordURL", generateChangePasswordURL(token));
+    emailData.put("changePasswordURL", generateChangePasswordURL(token, terminalName));
 
     emailManager.sendEmail(EVT_FORGOT_PASSWORD, user.getEmail(), emailData, emailConfig);
   }
@@ -181,8 +183,9 @@ public class ForgotPasswordService extends HttpServlet {
     return token;
   }
 
-  private String generateChangePasswordURL(String token) {
-    return String.format("http://localhost:3000/?changePassword=%s", token);
+  private String generateChangePasswordURL(String token, String terminalName) {
+    return String.format("http://localhost:3000/?changePassword=%s&terminal=%s", token,
+        terminalName);
   }
 
   private void writeResult(HttpServletResponse response, String result) throws IOException {
