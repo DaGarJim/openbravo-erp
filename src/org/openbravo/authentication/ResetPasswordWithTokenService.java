@@ -30,6 +30,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.authentication.hashing.PasswordHash;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
+import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.service.password.PasswordStrengthChecker;
 
@@ -52,16 +53,17 @@ public class ResetPasswordWithTokenService extends HttpServlet {
 
       String token = body.optString("token");
       if (!isValidUUID(token)) {
-        throw new ChangePasswordException("The UUID provided is not valid!");
+        throw new ChangePasswordException(
+            OBMessageUtils.getI18NMessage("PasswordTokenUUIDNotValid"));
       }
 
       String newPwd = body.optString("newPassword");
       if (!passwordStrengthChecker.isStrongPassword(newPwd)) {
         throw new ChangePasswordException(
-            "Please provide a stronger one. Passwords must have at least 8 characters and contain at least three of the following: uppercase letters, lowercase letters, numbers and symbols.");
+            OBMessageUtils.getI18NMessage("CPPasswordNotStrongEnough"));
       }
 
-      String hql_token = "select user.id as userId, redeemed as isRedeemed, creationDate as created from ADUserPwdResetToken where usertoken = :token";
+      String hql_token = "select userContact.id, redeemed, creationDate from ADUserPwdResetToken where usertoken = :token";
 
       Tuple tokenEntry = OBDal.getInstance()
           .getSession()
@@ -70,7 +72,8 @@ public class ResetPasswordWithTokenService extends HttpServlet {
           .uniqueResult();
 
       if (tokenEntry == null) {
-        throw new ChangePasswordException("No entry found with token " + token);
+        throw new ChangePasswordException(
+            OBMessageUtils.getI18NMessage("NoSpecificEntryToken", new String[] { token }));
       }
 
       String userId = (String) tokenEntry.get(0);
@@ -78,7 +81,7 @@ public class ResetPasswordWithTokenService extends HttpServlet {
       Timestamp creationDate = (Timestamp) tokenEntry.get(2);
 
       if (!checkExpirationOfToken(creationDate, isRedeemed)) {
-        throw new ChangePasswordException("The token has expired");
+        throw new ChangePasswordException(OBMessageUtils.getI18NMessage("PasswordTokenExpired"));
       }
 
       updateIsRedeemedValue(token);
@@ -116,7 +119,7 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   private JSONObject generateError(String errorMsg) throws JSONException {
     JSONObject error = new JSONObject();
     JSONObject errorResponse = new JSONObject();
-    errorResponse.put("messageTitle", "Error during new password generation");
+    errorResponse.put("messageTitle", OBMessageUtils.getI18NMessage("PasswordGenerationError"));
     errorResponse.put("messageText", errorMsg);
     error.put("response", errorResponse);
     return error;

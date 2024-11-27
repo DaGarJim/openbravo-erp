@@ -33,6 +33,7 @@ import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
 import org.openbravo.email.EmailEventManager;
 import org.openbravo.email.EmailUtils;
+import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
@@ -63,12 +64,13 @@ public class ForgotPasswordService extends HttpServlet {
 
       String strAppName = body.optString("appName");
       if (strAppName.isEmpty()) {
-        throw new Exception("The request has not been done in the scope of POS2");
+        throw new Exception("The request has not been done in the scope of POS2"); // TODO localize
+                                                                                   // msg
       }
 
       String strOrgId = body.optString("organization");
       if (strOrgId.isEmpty()) {
-        throw new Exception("The request has not an organization defined");
+        throw new Exception(OBMessageUtils.getI18NMessage("OrganizatioNotDefinedInTheRequest"));
       }
 
       String strClientId = body.optString("client");
@@ -125,11 +127,11 @@ public class ForgotPasswordService extends HttpServlet {
 
     if (users == null || users.size() == 0) {
       throw new ChangePasswordException(
-          "Forgot password service: No user has the selected name or email configured");
+          OBMessageUtils.getI18NMessage("NoEmailConfiguredForSpecificUser"));
     }
     if (users.size() > 1) {
       throw new ChangePasswordException(
-          "Forgot password service: More than one user has the same email configured");
+          OBMessageUtils.getI18NMessage("MoreThanOneUserWithSameEmailConfigured"));
     }
 
     User user = users.get(0);
@@ -137,7 +139,7 @@ public class ForgotPasswordService extends HttpServlet {
     boolean userCompliesWithRules = checkUser(user);
     if (!userCompliesWithRules) {
       throw new ChangePasswordException(
-          "Forgot password service: The selected user does not comply with the expected rules");
+          OBMessageUtils.getI18NMessage("UserDoesNotComplyWithRulesToResetPwd"));
     }
     return user;
   }
