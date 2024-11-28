@@ -76,9 +76,9 @@ public class ResetPasswordWithTokenService extends HttpServlet {
             OBMessageUtils.getI18NMessage("NoSpecificEntryToken", new String[] { token }));
       }
 
-      String userId = (String) tokenEntry.get(0);
-      Boolean isRedeemed = (Boolean) tokenEntry.get(1);
-      Timestamp creationDate = (Timestamp) tokenEntry.get(2);
+      String userId = tokenEntry.get(0, String.class);
+      Boolean isRedeemed = tokenEntry.get(1, Boolean.class);
+      Timestamp creationDate = tokenEntry.get(2, Timestamp.class);
 
       if (!checkExpirationOfToken(creationDate, isRedeemed)) {
         throw new ChangePasswordException(OBMessageUtils.getI18NMessage("PasswordTokenExpired"));
