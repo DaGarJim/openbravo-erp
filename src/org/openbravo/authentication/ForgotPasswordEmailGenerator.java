@@ -12,18 +12,23 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.email.EmailEventContentGenerator;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 
 /**
  * Email generator for {@link ForgotPasswordService#EVT_FORGOT_PASSWORD} event which is triggered
- * when a user is granted with portal privileges.
+ * when the {@link ForgotPasswordService} is executed
  * 
- * @author asier
+ * @author ander.flores
  * 
  */
 public class ForgotPasswordEmailGenerator implements EmailEventContentGenerator {
+
+  @Inject
+  private ForgotPasswordEmailBody body;
 
   @Override
   public String getSubject(Object data, String event) {
@@ -35,7 +40,6 @@ public class ForgotPasswordEmailGenerator implements EmailEventContentGenerator 
   @SuppressWarnings("unchecked")
   @Override
   public String getBody(Object data, String event) {
-    ForgotPasswordEmailBody body = new ForgotPasswordEmailBody();
     body.setData((Map<String, Object>) data);
     return body.generate();
   }
