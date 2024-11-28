@@ -54,5 +54,8 @@
       <foreign-key foreignTable="AD_USER" name="AD_USER_PWS_RESET_AD_USER">
         <reference local="AD_USER_ID" foreign="AD_USER_ID"/>
       </foreign-key>
+      <unique name="AD_USER_PWD_RESET_TOKEN_UN">
+        <unique-column name="USERTOKEN"/>
+      </unique>
     </table>
   </database>
