@@ -1,28 +1,42 @@
 /*
- ************************************************************************************
- * Copyright (C) 2024 Openbravo S.L.U.
- * Licensed under the Openbravo Commercial License version 1.0
- * You may obtain a copy of the License at https://www.openbravo.com/legal/obcl.html
- * or in the legal folder of this module distribution.
- ************************************************************************************
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.1  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License.
+ * The Original Code is Openbravo ERP.
+ * The Initial Developer of the Original Code is Openbravo SLU
+ * All portions are Copyright (C) 2024 Openbravo SLU
+ * All Rights Reserved.
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
  */
 package org.openbravo.authentication;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.persistence.Tuple;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
@@ -34,7 +48,6 @@ import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
 import org.openbravo.email.EmailEventManager;
 import org.openbravo.email.EmailUtils;
-import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
@@ -47,55 +60,70 @@ import org.openbravo.model.common.enterprise.Organization;
  */
 public class ForgotPasswordService extends HttpServlet {
 
+  public static final String EVT_FORGOT_PASSWORD = "forgotPassword";
+
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
-  public static final String EVT_FORGOT_PASSWORD = "forgotPassword";
+
+  private static final SecureRandom secureRandom = new SecureRandom();
+  private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
   @Inject
   private EmailEventManager emailManager;
 
+  @Inject
+  @Any
+  private Instance<ForgotPasswordServiceValidator> validateInstances;
+
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
-    JSONObject result = new JSONObject();
+
     try {
       OBContext.setAdminMode(true);
-      result.put("isAuthenticated", true);
-      JSONObject body = new JSONObject(
-          request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+      JSONObject body = new JSONObject(IOUtils.toString(request.getReader()));
 
       String strAppName = body.optString("appName");
       if (strAppName.isEmpty()) {
-        throw new Exception("The request has not been done in the scope of POS2"); // TODO localize
-                                                                                   // msg
+        throw new ForgotPasswordException("Parameter appName not defined in the request");
       }
 
       String strOrgId = body.optString("organization");
       if (strOrgId.isEmpty()) {
-        throw new Exception(OBMessageUtils.getI18NMessage("OrganizationNotDefinedInTheRequest"));
+        throw new ForgotPasswordException("Parameter organization not defined in the request");
       }
+      Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
 
       String strClientId = body.optString("client");
-      String terminalName = body.optString("terminalName");
-
-      checkTerminalAuthentication(strClientId, terminalName, result);
-
-      Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
+      if (strClientId.isEmpty()) {
+        throw new ForgotPasswordException("Parameter client not defined in the request");
+      }
       Client client = OBDal.getInstance().get(Client.class, strClientId);
 
-      EmailServerConfiguration emailConfig = getEmailConfiguration(result, org, client);
+      ForgotPasswordServiceValidator validator = validateInstances
+          .select(new ForgotPasswordServiceValidator.Selector(strAppName))
+          .get();
 
-      if (emailConfig != null) {
-        result.put("hasEmailConfiguration", true);
+      validator.validate(client, org, body);
 
-        String userOrEmail = body.getString("userOrEmail");
-        User user = getValidUser(userOrEmail);
+      EmailServerConfiguration emailConfig = getEmailConfiguration(org, client);
+
+      if (emailConfig == null) {
+        throw new ForgotPasswordException("Email configuration not found for client/organization: "
+            + client.getIdentifier() + "/" + org.getIdentifier());
+      }
+
+      String userOrEmail = body.getString("userOrEmail");
+      User user = getValidUser(userOrEmail);
+      if (user != null) {
+
         String token = generateAndPersistToken(user, client, org);
+        String tokenURL = generateChangePasswordURL(request, token);
 
         Runnable r = () -> {
           try {
             OBContext.setAdminMode(true);
-            sendChangePasswordEmail(org, client, emailConfig, user, token, terminalName);
+            sendChangePasswordEmail(org, client, emailConfig, user, tokenURL);
           } catch (EmailEventException ex) {
             log.error("Error sending the email", ex);
           } catch (Exception ex) {
@@ -106,45 +134,20 @@ public class ForgotPasswordService extends HttpServlet {
         };
         new Thread(r).start();
       }
-    } catch (JSONException ex) {
-      log.error("Error parsing JSON", ex);
-      result = new JSONObject(Map.of("error", ex.getMessage()));
-    } catch (ChangePasswordException ex) {
-      log.warn("Error with forgot password service", ex);
-    } catch (Exception ex) {
-      log.error("Error with forgot password service", ex);
-      result = new JSONObject(Map.of("error", ex.getMessage()));
+      writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
+    } catch (ForgotPasswordException ex) {
+      JSONObject result = new JSONObject(
+          Map.of("result", ex.getResult(), "message", ex.getMessage()));
+      writeResult(response, result);
+    } catch (JSONException | URISyntaxException ex) {
+      JSONObject result = new JSONObject(Map.of("result", "ERROR", "message", ex.getMessage()));
+      writeResult(response, result);
     } finally {
       OBContext.restorePreviousMode();
-      writeResult(response, new JSONObject(Map.of("response", result)).toString());
     }
   }
 
-  private void checkTerminalAuthentication(String strClientId, String terminalName,
-      JSONObject result) throws Exception {
-    String terminalAuth_hql = "select id from ADPreference where property = 'OBPOS_TerminalAuthentication' and value = 'Y' and client.id = :client";
-    Tuple terminalAuth = OBDal.getInstance()
-        .getSession()
-        .createQuery(terminalAuth_hql, Tuple.class)
-        .setParameter("client", strClientId)
-        .uniqueResult();
-
-    if (terminalAuth != null) {
-      String getLinkedTerminal_hql = "select id from OBPOS_Applications where value = :terminalName and islinked = true";
-      Tuple linkedTerminal = OBDal.getInstance()
-          .getSession()
-          .createQuery(getLinkedTerminal_hql, Tuple.class)
-          .setParameter("terminalName", terminalName)
-          .uniqueResult();
-      if (linkedTerminal == null) {
-        // The terminal is not linked and should be
-        result.put("isAuthenticated", false);
-        throw new Exception(OBMessageUtils.getI18NMessage("TerminalNotAuthenticated"));
-      }
-    }
-  }
-
-  private User getValidUser(String userOrEmail) throws ChangePasswordException, Exception {
+  private User getValidUser(String userOrEmail) {
     List<User> users = OBDal.getInstance()
         .createCriteria(User.class)
         .add(Restrictions.or(Restrictions.eq(User.PROPERTY_USERNAME, userOrEmail),
@@ -155,42 +158,38 @@ public class ForgotPasswordService extends HttpServlet {
         .list();
 
     if (users == null || users.size() == 0) {
-      throw new ChangePasswordException(
-          OBMessageUtils.getI18NMessage("NoEmailConfiguredForSpecificUser"));
+      log.warn(() -> "User or email not found: " + userOrEmail);
+      return null;
     }
     if (users.size() > 1) {
-      throw new ChangePasswordException(
-          OBMessageUtils.getI18NMessage("MoreThanOneUserWithSameEmailConfigured"));
+      log.warn(() -> "More than one email configured for: " + userOrEmail);
+      return null;
     }
 
     User user = users.get(0);
 
     boolean userCompliesWithRules = checkUser(user);
     if (!userCompliesWithRules) {
-      throw new ChangePasswordException(
-          OBMessageUtils.getI18NMessage("UserDoesNotComplyWithRulesToResetPwd"));
+      log.warn(() -> "User does not comply with the rules: " + userOrEmail);
+      return null;
     }
     return user;
   }
 
-  private EmailServerConfiguration getEmailConfiguration(JSONObject result, Organization org,
-      Client client) throws JSONException {
+  private EmailServerConfiguration getEmailConfiguration(Organization org, Client client)
+      throws JSONException {
     EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org, client);
     if (emailConfig == null) {
       emailConfig = EmailUtils.getEmailConfiguration(org);
-      if (emailConfig == null) {
-        result.put("hasEmailConfiguration", false);
-      }
     }
     return emailConfig;
   }
 
   private void sendChangePasswordEmail(Organization org, Client client,
-      EmailServerConfiguration emailConfig, User user, String token, String terminalName)
-      throws EmailEventException {
+      EmailServerConfiguration emailConfig, User user, String url) throws EmailEventException {
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
-    emailData.put("changePasswordURL", generateChangePasswordURL(token, terminalName));
+    emailData.put("changePasswordURL", url);
 
     emailManager.sendEmail(EVT_FORGOT_PASSWORD, user.getEmail(), emailData, emailConfig);
   }
@@ -200,7 +199,7 @@ public class ForgotPasswordService extends HttpServlet {
   }
 
   private String generateAndPersistToken(User user, Client client, Organization org) {
-    String token = UUID.randomUUID().toString();
+    String token = generateNewToken();
     UserPwdResetToken resetToken = OBProvider.getInstance().get(UserPwdResetToken.class);
     resetToken.setClient(client);
     resetToken.setOrganization(org);
@@ -211,17 +210,38 @@ public class ForgotPasswordService extends HttpServlet {
     return token;
   }
 
-  private String generateChangePasswordURL(String token, String terminalName) {
-    return String.format("http://localhost:3000/?changePassword=%s&terminal=%s", token,
-        terminalName);
+  private String generateChangePasswordURL(HttpServletRequest request, String token)
+      throws URISyntaxException {
+
+    URI referer = new URI(request.getHeader("Referer"));
+    String query = referer.getQuery();
+
+    StringBuilder newQuery = new StringBuilder();
+    if (query != null && !query.isEmpty()) {
+      newQuery.append(query);
+      newQuery.append("&");
+    }
+
+    newQuery.append("changePassword=");
+    newQuery.append(token);
+
+    return new URI(referer.getScheme(), referer.getAuthority(), referer.getPath(),
+        newQuery.toString(), referer.getFragment()).toString();
+
   }
 
-  private void writeResult(HttpServletResponse response, String result) throws IOException {
+  private void writeResult(HttpServletResponse response, JSONObject result) throws IOException {
     response.setContentType("application/json;charset=UTF-8");
     response.setHeader("Content-Type", "application/json;charset=UTF-8");
 
     final Writer w = response.getWriter();
-    w.write(result);
+    w.write(result.toString());
     w.close();
+  }
+
+  private static String generateNewToken() {
+    byte[] randomBytes = new byte[24];
+    secureRandom.nextBytes(randomBytes);
+    return base64Encoder.encodeToString(randomBytes);
   }
 }

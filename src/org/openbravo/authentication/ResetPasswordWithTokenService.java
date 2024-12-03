@@ -1,11 +1,22 @@
 /*
- ************************************************************************************
- * Copyright (C) 2024 Openbravo S.L.U.
- * Licensed under the Openbravo Commercial License version 1.0
- * You may obtain a copy of the License at https://www.openbravo.com/legal/obcl.html
- * or in the legal folder of this module distribution.
- ************************************************************************************
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.1  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License.
+ * The Original Code is Openbravo ERP.
+ * The Initial Developer of the Original Code is Openbravo SLU
+ * All portions are Copyright (C) 2024 Openbravo SLU
+ * All Rights Reserved.
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
  */
+
 package org.openbravo.authentication;
 
 import java.io.IOException;
@@ -13,7 +24,6 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -52,11 +62,6 @@ public class ResetPasswordWithTokenService extends HttpServlet {
           request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
 
       String token = body.optString("token");
-      if (!isValidUUID(token)) {
-        throw new ChangePasswordException(
-            OBMessageUtils.getI18NMessage("PasswordTokenUUIDNotValid"));
-      }
-
       String newPwd = body.optString("newPassword");
       if (!passwordStrengthChecker.isStrongPassword(newPwd)) {
         throw new ChangePasswordException(
@@ -109,7 +114,7 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   }
 
   private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed) {
-    Date tokenDate = new Date(System.currentTimeMillis() - (10 * 60 * 1000)); // Hace 10 minutos
+    Date tokenDate = new Date(System.currentTimeMillis() - (10 * 60 * 1000)); // 10 minutes
     Date now = new Date();
     long differenceInSeconds = (now.getTime() - tokenDate.getTime()) / 1000;
     boolean isWithinFifteenMinutes = differenceInSeconds < 15 * 60;
@@ -133,18 +138,6 @@ public class ResetPasswordWithTokenService extends HttpServlet {
         .createQuery(hql)
         .setParameter("token", token)
         .executeUpdate();
-  }
-
-  /**
-   * Security check to validate whether the token is valid or not
-   *
-   * @param token
-   * @return true if the token is valid
-   */
-  public boolean isValidUUID(String token) {
-    String uuidRegex = "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
-    Pattern pattern = Pattern.compile(uuidRegex);
-    return pattern.matcher(token).matches();
   }
 
   private void writeResult(HttpServletResponse response, String result) throws IOException {
