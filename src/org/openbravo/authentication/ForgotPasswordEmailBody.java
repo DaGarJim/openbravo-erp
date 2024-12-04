@@ -97,7 +97,7 @@ public class ForgotPasswordEmailBody extends BaseComponent {
         .list();
 
     if (emailTemplates.isEmpty()) {
-      throw new ChangePasswordException(
+      throw new ForgotPasswordException(
           OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
     }
 
