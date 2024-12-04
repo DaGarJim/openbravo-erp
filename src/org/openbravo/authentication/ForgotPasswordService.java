@@ -189,7 +189,10 @@ public class ForgotPasswordService extends HttpServlet {
       EmailServerConfiguration emailConfig, User user, String url) throws EmailEventException {
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
+    emailData.put("firstname", user.getFirstName());
     emailData.put("changePasswordURL", url);
+    emailData.put("org", org);
+    emailData.put("client", client);
 
     emailManager.sendEmail(EVT_FORGOT_PASSWORD, user.getEmail(), emailData, emailConfig);
   }

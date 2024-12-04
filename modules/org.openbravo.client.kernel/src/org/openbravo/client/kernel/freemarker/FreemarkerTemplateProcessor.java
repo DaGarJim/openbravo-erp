@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2010-2011 Openbravo SLU 
+ * All portions are Copyright (C) 2010-2024 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -32,6 +32,7 @@ import org.openbravo.base.validation.ValidationException;
 import org.openbravo.client.kernel.BaseTemplateProcessor;
 import org.openbravo.client.kernel.Template;
 import org.openbravo.client.kernel.TemplateProcessor;
+import org.openbravo.model.common.enterprise.EmailTemplate;
 
 import freemarker.core.Environment;
 import freemarker.template.Configuration;
@@ -81,6 +82,24 @@ public class FreemarkerTemplateProcessor
   @Override
   protected freemarker.template.Template createTemplateImplementation(Template template,
       String source) {
+    return createTemplateImplementation(source);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.openbravo.client.kernel.BaseTemplateProcessor#createTemplateImplementation(org.openbravo.
+   * model.common.enterprise.EmailTemplate, java.lang.String)
+   */
+  @Override
+  protected freemarker.template.Template createTemplateImplementation(EmailTemplate template,
+      String source) {
+    return createTemplateImplementation(source);
+  }
+
+  private freemarker.template.Template createTemplateImplementation(String source)
+      throws IllegalStateException {
     try {
       return new freemarker.template.Template("template", new StringReader(source),
           getNewConfiguration());

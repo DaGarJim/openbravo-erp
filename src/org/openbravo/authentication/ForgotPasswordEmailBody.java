@@ -8,31 +8,33 @@
  */
 package org.openbravo.authentication;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 
-import org.openbravo.client.kernel.BaseTemplateComponent;
-import org.openbravo.client.kernel.Template;
+import org.hibernate.criterion.Restrictions;
+import org.openbravo.client.kernel.BaseComponent;
 import org.openbravo.client.kernel.TemplateProcessor;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventContentGenerator;
-import org.openbravo.erpCommon.businessUtility.Preferences;
-import org.openbravo.erpCommon.utility.PropertyException;
+import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.access.User;
+import org.openbravo.model.ad.system.Client;
+import org.openbravo.model.authentication.EmailType;
 import org.openbravo.model.common.enterprise.EmailTemplate;
+import org.openbravo.model.common.enterprise.Organization;
 
 /**
- * Convenience class that provides a set of common utilities for templates of emails sent by portal
- * events.
+ * Convenience class that provides a set of common utilities for email templates to be sent
  * 
  * @see EmailEventContentGenerator
  * @author ander.flores
- * 
  */
-public class ForgotPasswordEmailBody extends BaseTemplateComponent {
-  private Map<String, Object> data;
+public class ForgotPasswordEmailBody extends BaseComponent {
 
   @Inject
   private TemplateProcessor.Registry templateProcessRegistry;
@@ -41,71 +43,98 @@ public class ForgotPasswordEmailBody extends BaseTemplateComponent {
   public String generate() {
     OBContext.setAdminMode();
     try {
-      if (getData() != null) {
-        getParameters().put(DATA_PARAMETER, getData());
-      }
-
-      final Template template = getComponentTemplate();
-      final TemplateProcessor templateProcessor = templateProcessRegistry
-          .get(template.getTemplateLanguage());
+      final EmailTemplate template = getComponentEmailTemplate();
+      processBody(template);
+      final TemplateProcessor templateProcessor = templateProcessRegistry.get("OBCLFRE_Freemarker");
       return templateProcessor.process(template, getParameters());
     } finally {
       OBContext.restorePreviousMode();
     }
   }
 
-  public String getClientName() {
-    return OBContext.getOBContext().getCurrentClient().getName();
+  private void processBody(final EmailTemplate template) {
+    String body = template.getBody();
+    body = replaceContentWithParameters(template.getBody(), getParameters());
+    template.setBody(body);
   }
 
-  public String getUrl() {
-    String url = "";
-    try {
-      url = Preferences.getPreferenceValue("PortalURL", true,
-          OBContext.getOBContext().getCurrentClient(),
-          OBContext.getOBContext().getCurrentOrganization(), null, null, null);
-    } catch (PropertyException e) {
-      // no preference set, ignore it
+  private String replaceContentWithParameters(String str, Map<String, Object> parameters) {
+    if (str == null) {
+      return str;
     }
-    return url;
-  }
-
-  public String getContactEmail() {
-    String email = "";
-    try {
-      email = Preferences.getPreferenceValue("PortalContactEmail", true,
-          OBContext.getOBContext().getCurrentClient(),
-          OBContext.getOBContext().getCurrentOrganization(), null, null, null);
-    } catch (PropertyException e) {
-      // no preference set, ignore it
+    String newString = str;
+    for (String key : parameters.keySet()) {
+      newString = newString.replaceAll("@" + key + "@", String.valueOf(parameters.get(key)));
     }
-    return email;
+    return newString;
   }
 
-  void setData(Map<String, Object> data) {
-    this.data = data;
+  public User getUser() {
+    return (User) getParameters().get("user");
+  }
+
+  public String getChangePasswordURL() {
+    return (String) getParameters().get("changePasswordURL");
+  }
+
+  public Organization getOrg() {
+    return (Organization) getParameters().get("org");
+  }
+
+  public Client getClient() {
+    return (Client) getParameters().get("client");
+  }
+
+  public EmailTemplate getComponentEmailTemplate() {
+    List<EmailTemplate> emailTemplates = OBDal.getInstance()
+        .createCriteria(EmailTemplate.class)
+        .add(Restrictions.eq(EmailTemplate.PROPERTY_EMAILTYPE,
+            OBDal.getInstance().get(EmailType.class, "5209BE52755B49C582F034E9B98B3F33")))
+        .addOrderBy(EmailTemplate.PROPERTY_ID, true)
+        .setFilterOnActive(true)
+        .setFilterOnReadableClients(false)
+        .setFilterOnReadableOrganization(false)
+        .list();
+
+    if (emailTemplates.isEmpty()) {
+      throw new ChangePasswordException(
+          OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
+    }
+
+    Optional<EmailTemplate> emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(getUser().getDefaultLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(getOrg().getLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(getClient().getLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates, EmailTemplate::isDefault);
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    return emailTemplates.get(0);
+  }
+
+  private Optional<EmailTemplate> filterEmailTemplates(List<EmailTemplate> emailTemplates,
+      Predicate<? super EmailTemplate> predicate) {
+    return emailTemplates.stream().filter(predicate).findAny();
   }
 
   @Override
   public Object getData() {
     return this;
-  }
-
-  public User getUser() {
-    return (User) this.data.get("user");
-  }
-
-  public String getChangePasswordURL() {
-    return (String) this.data.get("changePasswordURL");
-  }
-
-  @Override
-  protected Template getComponentTemplate() { // TODO: Get template based on email type
-    return OBDal.getInstance().get(Template.class, "B8ED789A54F74E798958D9ADD0ABCEBD");
-  }
-
-  private EmailTemplate getComponentEmailTemplate() {
-    return OBDal.getInstance().get(EmailTemplate.class, "878ECF0D5A668C7BE040007F010129BA");
   }
 
 }
