@@ -26,18 +26,25 @@ public class ForgotPasswordException extends AuthenticationException {
   private static final long serialVersionUID = 1L;
 
   private final String result;
+  private final String clientMsg;
 
   public ForgotPasswordException(String msg) {
     super(msg);
     this.result = "ERROR";
+    this.clientMsg = "";
   }
 
-  public ForgotPasswordException(String result, String msg) {
+  public ForgotPasswordException(String result, String clientMsg, String msg) {
     super(msg);
     this.result = result;
+    this.clientMsg = clientMsg;
   }
 
   public String getResult() {
     return result;
+  }
+
+  public String getClientMsg() {
+    return clientMsg;
   }
 }

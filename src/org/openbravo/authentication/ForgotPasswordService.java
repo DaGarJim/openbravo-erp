@@ -85,17 +85,20 @@ public class ForgotPasswordService extends HttpServlet {
 
       String strAppName = body.optString("appName");
       if (strAppName.isEmpty()) {
+        log.warn("Parameter appName not defined in the request");
         throw new ForgotPasswordException("Parameter appName not defined in the request");
       }
 
       String strOrgId = body.optString("organization");
       if (strOrgId.isEmpty()) {
+        log.warn("Parameter organization not defined in the request");
         throw new ForgotPasswordException("Parameter organization not defined in the request");
       }
       Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
 
       String strClientId = body.optString("client");
       if (strClientId.isEmpty()) {
+        log.warn("Parameter client not defined in the request");
         throw new ForgotPasswordException("Parameter client not defined in the request");
       }
       Client client = OBDal.getInstance().get(Client.class, strClientId);
@@ -109,6 +112,8 @@ public class ForgotPasswordService extends HttpServlet {
       EmailServerConfiguration emailConfig = getEmailConfiguration(org, client);
 
       if (emailConfig == null) {
+        log.warn(() -> "Email configuration not found for client/organization: "
+            + client.getIdentifier() + "/" + org.getIdentifier());
         throw new ForgotPasswordException("Email configuration not found for client/organization: "
             + client.getIdentifier() + "/" + org.getIdentifier());
       }
@@ -136,8 +141,8 @@ public class ForgotPasswordService extends HttpServlet {
       }
       writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
     } catch (ForgotPasswordException ex) {
-      JSONObject result = new JSONObject(
-          Map.of("result", ex.getResult(), "message", ex.getMessage()));
+      JSONObject result = new JSONObject(Map.of("result", ex.getResult(), "clientMsg",
+          ex.getClientMsg(), "message", ex.getMessage()));
       writeResult(response, result);
     } catch (JSONException | URISyntaxException ex) {
       JSONObject result = new JSONObject(Map.of("result", "ERROR", "message", ex.getMessage()));

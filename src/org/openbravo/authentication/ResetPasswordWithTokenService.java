@@ -24,7 +24,6 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.persistence.Tuple;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
@@ -40,7 +40,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.authentication.hashing.PasswordHash;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
-import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.service.password.PasswordStrengthChecker;
 
@@ -49,23 +48,26 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
+  // 15 minutes
+  private static final long EXPIRATION_TIME = 15 * 60 * 1000;
+
   @Inject
   private PasswordStrengthChecker passwordStrengthChecker;
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response)
       throws IOException, ServletException {
-    JSONObject result = new JSONObject();
+
     try {
       OBContext.setAdminMode(true);
-      JSONObject body = new JSONObject(
-          request.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+      JSONObject body = new JSONObject(IOUtils.toString(request.getReader()));
 
       String token = body.optString("token");
       String newPwd = body.optString("newPassword");
       if (!passwordStrengthChecker.isStrongPassword(newPwd)) {
-        throw new ChangePasswordException(
-            OBMessageUtils.getI18NMessage("CPPasswordNotStrongEnough"));
+        log.warn("Password not strong enough."); // DO NOT LOG PASSWORDS / SECRETS
+        throw new ForgotPasswordException("ERROR_PASSWORDNOTSTRONG", "",
+            "Password not strong enough.");
       }
 
       String hql_token = "select userContact.id, redeemed, creationDate from ADUserPwdResetToken where usertoken = :token";
@@ -77,8 +79,8 @@ public class ResetPasswordWithTokenService extends HttpServlet {
           .uniqueResult();
 
       if (tokenEntry == null) {
-        throw new ChangePasswordException(
-            OBMessageUtils.getI18NMessage("NoSpecificEntryToken", new String[] { token }));
+        log.warn("Token not found."); // DO NOT LOG PASSWORDS / SECRETS
+        throw new ForgotPasswordException("Token not valid.");
       }
 
       String userId = tokenEntry.get(0, String.class);
@@ -86,48 +88,35 @@ public class ResetPasswordWithTokenService extends HttpServlet {
       Timestamp creationDate = tokenEntry.get(2, Timestamp.class);
 
       if (!checkExpirationOfToken(creationDate, isRedeemed)) {
-        throw new ChangePasswordException(OBMessageUtils.getI18NMessage("PasswordTokenExpired"));
+        log.warn("Token expired"); // DO NOT LOG PASSWORDS / SECRETS
+        throw new ForgotPasswordException("Token not valid.");
       }
 
       updateIsRedeemedValue(token);
       User user = OBDal.getInstance().get(User.class, userId);
       user.setPassword(PasswordHash.generateHash(newPwd));
+      OBDal.getInstance().save(user);
       OBDal.getInstance().flush();
 
-    } catch (ChangePasswordException ex) {
-      log.info("Error while validating the reset password request: " + ex.getMessage());
-      try {
-        result = new JSONObject(Map.of("error", generateError(ex.getMessage())));
-      } catch (JSONException e) {
-        // Should not happen
-      }
+      writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
+
+    } catch (ForgotPasswordException ex) {
+      JSONObject result = new JSONObject(Map.of("result", ex.getResult(), "clientMsg",
+          ex.getClientMsg(), "message", ex.getMessage()));
+      writeResult(response, result);
     } catch (JSONException ex) {
-      log.error("Error parsing JSON", ex);
-      result = new JSONObject(Map.of("error", ex.getMessage()));
-    } catch (Exception ex) {
-      log.error("Error processing ", ex);
-      result = new JSONObject(Map.of("error", ex.getMessage()));
+      JSONObject result = new JSONObject(Map.of("result", "ERROR", "message", ex.getMessage()));
+      writeResult(response, result);
     } finally {
       OBContext.restorePreviousMode();
     }
-    writeResult(response, new JSONObject(Map.of("response", result)).toString());
   }
 
   private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed) {
-    Date tokenDate = new Date(creationDate.getTime());
     Date now = new Date();
-    long differenceInSeconds = (now.getTime() - tokenDate.getTime()) / 1000;
-    boolean isWithinFifteenMinutes = differenceInSeconds < 15 * 60;
-    return !isRedeemed && isWithinFifteenMinutes;
-  }
-
-  private JSONObject generateError(String errorMsg) throws JSONException {
-    JSONObject error = new JSONObject();
-    JSONObject errorResponse = new JSONObject();
-    errorResponse.put("messageTitle", OBMessageUtils.getI18NMessage("PasswordGenerationError"));
-    errorResponse.put("messageText", errorMsg);
-    error.put("response", errorResponse);
-    return error;
+    long difference = now.getTime() - creationDate.getTime();
+    boolean valid = difference < EXPIRATION_TIME;
+    return !isRedeemed && valid;
   }
 
   private int updateIsRedeemedValue(String token) {
@@ -140,12 +129,12 @@ public class ResetPasswordWithTokenService extends HttpServlet {
         .executeUpdate();
   }
 
-  private void writeResult(HttpServletResponse response, String result) throws IOException {
+  private void writeResult(HttpServletResponse response, JSONObject result) throws IOException {
     response.setContentType("application/json;charset=UTF-8");
     response.setHeader("Content-Type", "application/json;charset=UTF-8");
 
     final Writer w = response.getWriter();
-    w.write(result);
+    w.write(result.toString());
     w.close();
   }
 }
