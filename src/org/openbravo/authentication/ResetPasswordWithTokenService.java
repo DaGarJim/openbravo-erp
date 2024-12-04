@@ -114,7 +114,7 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   }
 
   private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed) {
-    Date tokenDate = new Date(System.currentTimeMillis() - (10 * 60 * 1000)); // 10 minutes
+    Date tokenDate = new Date(creationDate.getTime());
     Date now = new Date();
     long differenceInSeconds = (now.getTime() - tokenDate.getTime()) / 1000;
     boolean isWithinFifteenMinutes = differenceInSeconds < 15 * 60;
