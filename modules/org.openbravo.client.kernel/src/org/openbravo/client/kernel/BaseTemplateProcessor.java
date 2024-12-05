@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2010-2024 Openbravo SLU 
+ * All portions are Copyright (C) 2010-2016 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -25,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.openbravo.dal.core.DalUtil;
-import org.openbravo.model.ad.module.Module;
-import org.openbravo.model.common.enterprise.EmailTemplate;
 import org.openbravo.service.json.JsonConstants;
 
 /**
@@ -49,37 +47,16 @@ public abstract class BaseTemplateProcessor<T extends Object> implements Templat
    */
   @Override
   public String process(Template template, Map<String, Object> data) {
-    T templateImplementation = getTemplateImplementation(template);
-    if (templateImplementation == null) {
-      final String source = createTemplateSource(template);
-      templateImplementation = createSetFreeMarkerTemplateInCache(template, source);
-    }
 
-    return processWithDefaults(data, templateImplementation);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.openbravo.client.kernel.TemplateProcessor#process(org.openbravo.model.common.enterprise.
-   * EmailTemplate , java.util.Map)
-   */
-  @Override
-  public String process(EmailTemplate template, Map<String, Object> data) {
-    T templateImplementation = getTemplateImplementation(template);
-    if (templateImplementation == null) {
-      final String source = createTemplateSource(template);
-      templateImplementation = createSetFreeMarkerTemplateInCache(template, source);
-    }
-
-    return processWithDefaults(data, templateImplementation);
-  }
-
-  private String processWithDefaults(Map<String, Object> data, T templateImplementation) {
     // add some defaults
     data.put("Constants_FIELDSEPARATOR", DalUtil.FIELDSEPARATOR);
     data.put("Constants_IDENTIFIER", JsonConstants.IDENTIFIER);
+
+    T templateImplementation = getTemplateImplementation(template);
+    if (templateImplementation == null) {
+      final String source = createTemplateSource(template);
+      templateImplementation = createSetFreeMarkerTemplateInCache(template, source);
+    }
     return processTemplate(templateImplementation, data);
   }
 
@@ -102,27 +79,12 @@ public abstract class BaseTemplateProcessor<T extends Object> implements Templat
    * @return the template implementation in the template language
    */
   protected synchronized T getTemplateImplementation(Template template) {
-    return getTemplateImplementationById(template.getId());
-  }
-
-  /**
-   * Return the email template language specific implementation of the template.
-   * 
-   * @param template
-   *          the email template stored in the DB
-   * @return the email template implementation in the email template language
-   */
-  protected synchronized T getTemplateImplementation(EmailTemplate template) {
-    return getTemplateImplementationById(template.getId());
-  }
-
-  private T getTemplateImplementationById(String id) {
     // can not be cached
-    if (id == null) {
+    if (template.getId() == null) {
       return null;
     }
     final Map<String, T> localTemplateCache = templateCache;
-    T templateImplementation = localTemplateCache.get(id);
+    T templateImplementation = localTemplateCache.get(template.getId());
     if (templateImplementation != null) {
       return templateImplementation;
     }
@@ -154,17 +116,6 @@ public abstract class BaseTemplateProcessor<T extends Object> implements Templat
   }
 
   /**
-   * Creates the email template source from the email template body
-   * 
-   * @param template
-   *          the email template to create the source for
-   * @return a complete template source
-   */
-  protected String createTemplateSource(EmailTemplate template) {
-    return template.getBody();
-  }
-
-  /**
    * Checks the cache if there is already a template implementation for a certain template. If so
    * that one is returned. If not then a new implementation is created.
    * 
@@ -173,36 +124,16 @@ public abstract class BaseTemplateProcessor<T extends Object> implements Templat
    */
   protected synchronized T createSetFreeMarkerTemplateInCache(Template template, String source) {
     final T specificTemplate = createTemplateImplementation(template, source);
-    Module module = template.getModule();
-    String id = template.getId();
 
-    return createSetFreeMarkerTemplateInCache(specificTemplate, module, id);
-  }
-
-  /**
-   * Checks the cache if there is already an email template implementation for a certain email
-   * template. If so that one is returned. If not then a new implementation is created.
-   * 
-   * @param template
-   * @param source
-   */
-  protected synchronized T createSetFreeMarkerTemplateInCache(EmailTemplate template,
-      String source) {
-    final T specificTemplate = createTemplateImplementation(template, source);
-    Module module = template.getEmailType().getModule();
-    String id = template.getId();
-
-    return createSetFreeMarkerTemplateInCache(specificTemplate, module, id);
-  }
-
-  private T createSetFreeMarkerTemplateInCache(final T specificTemplate, Module module, String id) {
     // do not cache if the module is in development
-    if (module != null && module.isInDevelopment() != null && module.isInDevelopment()) {
+    if (template.getModule() != null && template.getModule().isInDevelopment() != null
+        && template.getModule().isInDevelopment()) {
       return specificTemplate;
     }
-    if (id != null) {
+
+    if (template.getId() != null) {
       final Map<String, T> localTemplateCache = templateCache;
-      localTemplateCache.put(id, specificTemplate);
+      localTemplateCache.put(template.getId(), specificTemplate);
     }
 
     return specificTemplate;
@@ -219,18 +150,6 @@ public abstract class BaseTemplateProcessor<T extends Object> implements Templat
    * @return the template implementation
    */
   protected abstract T createTemplateImplementation(Template template, String source);
-
-  /**
-   * To be implemented by the subclass. Based on the email template from the DB and the complete
-   * email template source, create a language specific template implementation instance.
-   * 
-   * @param template
-   *          the email template object from the DB
-   * @param source
-   *          the complete source (after resolving and including all dependencies)
-   * @return the email template implementation
-   */
-  protected abstract T createTemplateImplementation(EmailTemplate template, String source);
 
   /**
    * Reads the template source from the classpath

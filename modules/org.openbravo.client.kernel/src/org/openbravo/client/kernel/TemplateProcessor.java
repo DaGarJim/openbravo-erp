@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2010-2024 Openbravo SLU 
+ * All portions are Copyright (C) 2010-2011 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -31,7 +31,6 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 
 import org.openbravo.base.validation.ValidationException;
-import org.openbravo.model.common.enterprise.EmailTemplate;
 
 /**
  * Processes a template with data passed into it. A template processor is used as a singleton so
@@ -60,17 +59,6 @@ public interface TemplateProcessor {
    * @return the template process result.
    */
   public String process(Template template, Map<String, Object> data);
-
-  /**
-   * Processes a email template and returns the result as a string.
-   * 
-   * @param template
-   *          the email template to process.
-   * @param data
-   *          the data to use in the email template
-   * @return the email template process result.
-   */
-  public String process(EmailTemplate template, Map<String, Object> data);
 
   /**
    * Is called by the kernel to signal that a template has changed and that TemplateProcessors

@@ -19,6 +19,8 @@
 package org.openbravo.authentication;
 
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,6 +29,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
@@ -42,17 +46,28 @@ import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hibernate.criterion.Restrictions;
+import org.openbravo.base.model.ModelProvider;
+import org.openbravo.base.model.Property;
 import org.openbravo.base.provider.OBProvider;
+import org.openbravo.base.util.CheckException;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
-import org.openbravo.email.EmailEventManager;
 import org.openbravo.email.EmailUtils;
+import org.openbravo.erpCommon.utility.OBMessageUtils;
+import org.openbravo.erpCommon.utility.poc.EmailInfo;
+import org.openbravo.erpCommon.utility.poc.EmailManager;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
+import org.openbravo.model.authentication.EmailType;
 import org.openbravo.model.common.enterprise.EmailServerConfiguration;
+import org.openbravo.model.common.enterprise.EmailTemplate;
 import org.openbravo.model.common.enterprise.Organization;
+
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.TemplateException;
 
 /**
  * Loads into a core2 application the authentication provider configurations that are available for
@@ -60,16 +75,11 @@ import org.openbravo.model.common.enterprise.Organization;
  */
 public class ForgotPasswordService extends HttpServlet {
 
-  public static final String EVT_FORGOT_PASSWORD = "forgotPassword";
-
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
-
-  @Inject
-  private EmailEventManager emailManager;
 
   @Inject
   @Any
@@ -128,7 +138,8 @@ public class ForgotPasswordService extends HttpServlet {
         Runnable r = () -> {
           try {
             OBContext.setAdminMode(true);
-            sendChangePasswordEmail(org, client, emailConfig, user, tokenURL);
+            EmailTemplate emailTemplate = getEmailTemplate(user, org, client);
+            sendChangePasswordEmail(org, client, emailConfig, user, tokenURL, emailTemplate);
           } catch (EmailEventException ex) {
             log.error("Error sending the email", ex);
           } catch (Exception ex) {
@@ -150,6 +161,15 @@ public class ForgotPasswordService extends HttpServlet {
     } finally {
       OBContext.restorePreviousMode();
     }
+  }
+
+  private EmailServerConfiguration getEmailConfiguration(Organization org, Client client)
+      throws JSONException {
+    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org, client);
+    if (emailConfig == null) {
+      emailConfig = EmailUtils.getEmailConfiguration(org);
+    }
+    return emailConfig;
   }
 
   private User getValidUser(String userOrEmail) {
@@ -179,27 +199,6 @@ public class ForgotPasswordService extends HttpServlet {
       return null;
     }
     return user;
-  }
-
-  private EmailServerConfiguration getEmailConfiguration(Organization org, Client client)
-      throws JSONException {
-    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org, client);
-    if (emailConfig == null) {
-      emailConfig = EmailUtils.getEmailConfiguration(org);
-    }
-    return emailConfig;
-  }
-
-  private void sendChangePasswordEmail(Organization org, Client client,
-      EmailServerConfiguration emailConfig, User user, String url) throws EmailEventException {
-    Map<String, Object> emailData = new HashMap<String, Object>();
-    emailData.put("user", user);
-    emailData.put("firstname", user.getFirstName());
-    emailData.put("changePasswordURL", url);
-    emailData.put("org", org);
-    emailData.put("client", client);
-
-    emailManager.sendEmail(EVT_FORGOT_PASSWORD, user.getEmail(), emailData, emailConfig);
   }
 
   private boolean checkUser(User user) {
@@ -236,6 +235,104 @@ public class ForgotPasswordService extends HttpServlet {
     return new URI(referer.getScheme(), referer.getAuthority(), referer.getPath(),
         newQuery.toString(), referer.getFragment()).toString();
 
+  }
+
+  private EmailTemplate getEmailTemplate(User user, Organization org, Client client) {
+    List<EmailTemplate> emailTemplates = OBDal.getInstance()
+        .createCriteria(EmailTemplate.class)
+        .add(Restrictions.eq(EmailTemplate.PROPERTY_EMAILTYPE,
+            OBDal.getInstance().get(EmailType.class, "5209BE52755B49C582F034E9B98B3F33")))
+        .addOrderBy(EmailTemplate.PROPERTY_ID, true)
+        .setFilterOnActive(true)
+        .setFilterOnReadableClients(false)
+        .setFilterOnReadableOrganization(false)
+        .list();
+
+    if (emailTemplates.isEmpty()) {
+      throw new ForgotPasswordException(
+          OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
+    }
+
+    Optional<EmailTemplate> emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(user.getDefaultLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(org.getLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates,
+        template -> template.getLanguage().getId().equals(client.getLanguage().getId()));
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    emailTemplate = filterEmailTemplates(emailTemplates, EmailTemplate::isDefault);
+    if (emailTemplate.isPresent()) {
+      return emailTemplate.get();
+    }
+
+    return emailTemplates.get(0);
+  }
+
+  private Optional<EmailTemplate> filterEmailTemplates(List<EmailTemplate> emailTemplates,
+      Predicate<? super EmailTemplate> predicate) {
+    return emailTemplates.stream().filter(predicate).findAny();
+  }
+
+  private void sendChangePasswordEmail(Organization org, Client client,
+      EmailServerConfiguration emailConfig, User user, String url, EmailTemplate emailTemplate)
+      throws Exception {
+    String emailTemplateBody = processBody(user, url, emailTemplate);
+    emailTemplateBody = processBodyWithFreemarker(user, url, emailTemplateBody);
+
+    final EmailInfo email = new EmailInfo.Builder() //
+        .setSubject(emailTemplate.getSubject()) //
+        .setRecipientTO(user.getEmail()) //
+        .setContent(emailTemplateBody) //
+        .setContentType("text/plain; charset=utf-8") // check emailTemplate.isObpos2Ishtml() ?
+        .build();
+
+    EmailManager.sendEmail(emailConfig, email);
+  }
+
+  private String processBody(User user, String url, EmailTemplate emailTemplate)
+      throws CheckException {
+    String emailTemplateBody = emailTemplate.getBody();
+    emailTemplateBody = emailTemplateBody.replaceAll("@change_password_url@", url);
+
+    List<Property> userProperties = ModelProvider.getInstance()
+        .getEntity(User.class)
+        .getProperties();
+    for (Property property : userProperties) {
+      if (property.getSimpleTypeName().equals("String")) {
+        String propertyName = property.getName();
+        emailTemplateBody = emailTemplateBody.replaceAll("@" + propertyName + "@",
+            String.valueOf(user.get(propertyName)));
+      }
+    }
+    return emailTemplateBody;
+  }
+
+  private String processBodyWithFreemarker(User user, String url, String emailTemplateBody)
+      throws IOException, TemplateException {
+    final Configuration configuration = new Configuration();
+    configuration.setObjectWrapper(new DefaultObjectWrapper());
+
+    freemarker.template.Template templateImplementation = new freemarker.template.Template(
+        "template", new StringReader(emailTemplateBody), configuration);
+
+    Map<String, Object> emailData = new HashMap<String, Object>();
+    emailData.put("user", user);
+    emailData.put("change_password_url", url);
+
+    final StringWriter output = new StringWriter();
+    templateImplementation.process(emailData, output);
+    return output.toString();
   }
 
   private void writeResult(HttpServletResponse response, JSONObject result) throws IOException {
