@@ -142,6 +142,8 @@ public class ForgotPasswordService extends HttpServlet {
             sendChangePasswordEmail(org, client, emailConfig, user, tokenURL, emailTemplate);
           } catch (EmailEventException ex) {
             log.error("Error sending the email", ex);
+          } catch (ForgotPasswordException ex) {
+            log.error("Error getting email template", ex);
           } catch (Exception ex) {
             log.error("Error with forgot password service", ex);
           } finally {
@@ -237,7 +239,8 @@ public class ForgotPasswordService extends HttpServlet {
 
   }
 
-  private EmailTemplate getEmailTemplate(User user, Organization org, Client client) {
+  private EmailTemplate getEmailTemplate(User user, Organization org, Client client)
+      throws ForgotPasswordException {
     List<EmailTemplate> emailTemplates = OBDal.getInstance()
         .createCriteria(EmailTemplate.class)
         .add(Restrictions.eq(EmailTemplate.PROPERTY_EMAILTYPE,

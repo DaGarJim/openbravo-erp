@@ -21,7 +21,7 @@ package org.openbravo.authentication;
 /**
  * This exception is thrown when a change password attempt fails
  */
-public class ForgotPasswordException extends AuthenticationException {
+public class ForgotPasswordException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
