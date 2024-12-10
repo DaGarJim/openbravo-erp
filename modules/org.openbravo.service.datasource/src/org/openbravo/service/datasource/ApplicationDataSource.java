@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.openbravo.base.exception.OBSecurityException;
 import org.openbravo.base.model.Entity;
 import org.openbravo.base.model.ModelProvider;
@@ -37,7 +35,6 @@ import org.openbravo.model.ad.module.Application;
  * A data source that retrieves applications and "Any"
  */
 public class ApplicationDataSource extends ReadOnlyDataSourceService {
-  private static final Logger log = LogManager.getLogger();
   private static final String AD_APPLICATIONS_TABLE_ID = "EBC9A4A7BC9E48D7BBC9F70530627FB9";
 
   @Override
@@ -52,7 +49,6 @@ public class ApplicationDataSource extends ReadOnlyDataSourceService {
       OBContext.setAdminMode();
       OBCriteria<Application> criteria = OBDal.getInstance().createCriteria(Application.class);
 
-      // TODO: filtering
       List<Application> applications = criteria.list();
 
       List<Map<String, Object>> result = new ArrayList<>();
