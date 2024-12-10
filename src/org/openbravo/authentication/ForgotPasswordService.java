@@ -298,10 +298,22 @@ public class ForgotPasswordService extends HttpServlet {
         .setSubject(emailTemplate.getSubject()) //
         .setRecipientTO(user.getEmail()) //
         .setContent(emailBody) //
-        .setContentType("text/plain; charset=utf-8") // check emailTemplate.isObpos2Ishtml() ?
+        .setContentType(isTemplateHTML(emailTemplate) ? "text/html; charset=utf-8"
+            : "text/plain; charset=utf-8")
         .build();
 
+    emailTemplate.isObpos2Ishtml();
+
     EmailManager.sendEmail(emailConfig, email);
+  }
+
+  private boolean isTemplateHTML(EmailTemplate emailTemplate) {
+
+    // checks for POS2 isHTML property in case POS2 is installed
+    if (emailTemplate.getEntity().getProperty("obpos2Ishtml", false) == null) {
+      return false;
+    }
+    return (Boolean) emailTemplate.get("obpos2Ishtml");
   }
 
   private String processBodyWithFreemarker(User user, String url, String emailTemplateBody)
