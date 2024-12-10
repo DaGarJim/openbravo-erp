@@ -187,7 +187,7 @@ public class ForgotPasswordService extends HttpServlet {
         .setFilterOnReadableOrganization(false)
         .list();
 
-    if (users == null || users.size() == 0) {
+    if (users.size() == 0) {
       log.warn("User or email not found: {}", userOrEmail);
       return null;
     }
