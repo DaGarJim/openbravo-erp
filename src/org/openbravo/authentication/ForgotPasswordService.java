@@ -46,10 +46,7 @@ import org.apache.logging.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hibernate.criterion.Restrictions;
-import org.openbravo.base.model.ModelProvider;
-import org.openbravo.base.model.Property;
 import org.openbravo.base.provider.OBProvider;
-import org.openbravo.base.util.CheckException;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
@@ -294,35 +291,17 @@ public class ForgotPasswordService extends HttpServlet {
   private void sendChangePasswordEmail(Organization org, Client client,
       EmailServerConfiguration emailConfig, User user, String url, EmailTemplate emailTemplate)
       throws Exception {
-    String emailTemplateBody = processBody(user, url, emailTemplate);
-    emailTemplateBody = processBodyWithFreemarker(user, url, emailTemplateBody);
+    String emailTemplateBody = emailTemplate.getBody();
+    String emailBody = processBodyWithFreemarker(user, url, emailTemplateBody);
 
     final EmailInfo email = new EmailInfo.Builder() //
         .setSubject(emailTemplate.getSubject()) //
         .setRecipientTO(user.getEmail()) //
-        .setContent(emailTemplateBody) //
+        .setContent(emailBody) //
         .setContentType("text/plain; charset=utf-8") // check emailTemplate.isObpos2Ishtml() ?
         .build();
 
     EmailManager.sendEmail(emailConfig, email);
-  }
-
-  private String processBody(User user, String url, EmailTemplate emailTemplate)
-      throws CheckException {
-    String emailTemplateBody = emailTemplate.getBody();
-    emailTemplateBody = emailTemplateBody.replaceAll("@change_password_url@", url);
-
-    List<Property> userProperties = ModelProvider.getInstance()
-        .getEntity(User.class)
-        .getProperties();
-    for (Property property : userProperties) {
-      if (property.getSimpleTypeName().equals("String")) {
-        String propertyName = property.getName();
-        emailTemplateBody = emailTemplateBody.replaceAll("@" + propertyName + "@",
-            String.valueOf(user.get(propertyName)));
-      }
-    }
-    return emailTemplateBody;
   }
 
   private String processBodyWithFreemarker(User user, String url, String emailTemplateBody)
