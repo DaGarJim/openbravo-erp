@@ -197,7 +197,7 @@ public class ForgotPasswordService extends HttpServlet {
 
     boolean userCompliesWithRules = checkUser(user);
     if (!userCompliesWithRules) {
-      log.warn("User does not comply with the rules: ", userOrEmail);
+      log.warn("User does not comply with the rules: {}", userOrEmail);
       return null;
     }
     return user;
