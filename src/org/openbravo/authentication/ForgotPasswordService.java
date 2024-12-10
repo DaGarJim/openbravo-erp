@@ -207,7 +207,8 @@ public class ForgotPasswordService extends HttpServlet {
   }
 
   private boolean checkUser(User user) {
-    return user.isActive() && !user.getEmail().isEmpty() && !user.isLocked() && !user.isSsoonly();
+    return user.isActive() && user.getEmail() != null && !user.getEmail().isEmpty()
+        && !user.isLocked() && !user.isSsoonly();
   }
 
   private String generateAndPersistToken(User user, Client client, Organization org) {
