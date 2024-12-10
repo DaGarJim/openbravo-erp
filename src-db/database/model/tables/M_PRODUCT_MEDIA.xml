@@ -45,11 +45,11 @@
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="URL" primaryKey="false" required="true" type="NVARCHAR" size="500" autoIncrement="false">
+      <column name="URL" primaryKey="false" required="false" type="NVARCHAR" size="500" autoIncrement="false">
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="MEDIA_SIZE" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
+      <column name="MEDIA_SIZE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
         <onCreateDefault/>
       </column>

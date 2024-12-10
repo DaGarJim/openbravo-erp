@@ -38834,7 +38834,7 @@ Processes with "Requires Explicit Access Permission" flag set to true, do not in
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <COLUMNNAME><![CDATA[SeqNo]]></COLUMNNAME>
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <NAME><![CDATA[Main Filter Sequence Number]]></NAME>
-<!--DD1700D899794DA48E9988EAB3AA4287-->  <PRINTNAME><![CDATA[Main Filter Sequence Number]]></PRINTNAME>
+<!--DD1700D899794DA48E9988EAB3AA4287-->  <PRINTNAME><![CDATA[SeqNo]]></PRINTNAME>
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <DESCRIPTION><![CDATA[The sequence indicates the order for the main filter]]></DESCRIPTION>
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <HELP><![CDATA[The grid configuration which has the highest sequence number will be the one which applies to the main filter.]]></HELP>
 <!--DD1700D899794DA48E9988EAB3AA4287-->  <AD_MODULE_ID><![CDATA[0]]></AD_MODULE_ID>
