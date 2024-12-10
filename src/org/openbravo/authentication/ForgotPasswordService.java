@@ -57,10 +57,10 @@ import org.openbravo.email.EmailUtils;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.erpCommon.utility.poc.EmailInfo;
 import org.openbravo.erpCommon.utility.poc.EmailManager;
+import org.openbravo.erpCommon.utility.poc.EmailType;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.model.ad.access.UserPwdResetToken;
 import org.openbravo.model.ad.system.Client;
-import org.openbravo.model.authentication.EmailType;
 import org.openbravo.model.common.enterprise.EmailServerConfiguration;
 import org.openbravo.model.common.enterprise.EmailTemplate;
 import org.openbravo.model.common.enterprise.Organization;
@@ -122,8 +122,8 @@ public class ForgotPasswordService extends HttpServlet {
       EmailServerConfiguration emailConfig = getEmailConfiguration(org, client);
 
       if (emailConfig == null) {
-        log.warn(() -> "Email configuration not found for client/organization: "
-            + client.getIdentifier() + "/" + org.getIdentifier());
+        log.warn("Email configuration not found for client/organization: {}/{}",
+            client.getIdentifier(), org.getIdentifier());
         throw new ForgotPasswordException("Email configuration not found for client/organization: "
             + client.getIdentifier() + "/" + org.getIdentifier());
       }
@@ -185,11 +185,11 @@ public class ForgotPasswordService extends HttpServlet {
         .list();
 
     if (users == null || users.size() == 0) {
-      log.warn(() -> "User or email not found: " + userOrEmail);
+      log.warn("User or email not found: {}", userOrEmail);
       return null;
     }
     if (users.size() > 1) {
-      log.warn(() -> "More than one email configured for: " + userOrEmail);
+      log.warn("More than one email configured for: {}", userOrEmail);
       return null;
     }
 
@@ -197,7 +197,7 @@ public class ForgotPasswordService extends HttpServlet {
 
     boolean userCompliesWithRules = checkUser(user);
     if (!userCompliesWithRules) {
-      log.warn(() -> "User does not comply with the rules: " + userOrEmail);
+      log.warn("User does not comply with the rules: ", userOrEmail);
       return null;
     }
     return user;
