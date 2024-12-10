@@ -77,11 +77,11 @@ public class ResetPasswordWithTokenService extends HttpServlet {
             "Password not strong enough.");
       }
 
-      String hql_token = "select userContact.id, redeemed, creationDate from ADUserPwdResetToken where usertoken = :token";
+      String hqlToken = "select userContact.id, redeemed, creationDate from ADUserPwdResetToken where usertoken = :token";
 
       Tuple tokenEntry = OBDal.getInstance()
           .getSession()
-          .createQuery(hql_token, Tuple.class)
+          .createQuery(hqlToken, Tuple.class)
           .setParameter("token", token)
           .uniqueResult();
 
@@ -99,8 +99,14 @@ public class ResetPasswordWithTokenService extends HttpServlet {
         throw new ForgotPasswordException("Token not valid.");
       }
 
-      updateIsRedeemedValue(token);
       User user = OBDal.getInstance().get(User.class, userId);
+      if (PasswordHash.matches(newPwd, user.getPassword())) {
+        log.warn("The user has introduced the same password");
+        throw new ForgotPasswordException("ERROR_SAMEPASSWORD", "",
+            "The user has introduced the same password");
+      }
+
+      updateIsRedeemedValue(token, user);
       user.setPassword(PasswordHash.generateHash(newPwd));
       OBDal.getInstance().flush();
 
@@ -125,13 +131,14 @@ public class ResetPasswordWithTokenService extends HttpServlet {
     return !isRedeemed && valid;
   }
 
-  private int updateIsRedeemedValue(String token) {
-    String hql = "UPDATE ADUserPwdResetToken SET redeemed = 'Y' WHERE usertoken = :token ";
+  private int updateIsRedeemedValue(String token, User user) {
+    String hql = "UPDATE ADUserPwdResetToken SET redeemed = 'Y', updatedBy = :author, updated = now() WHERE usertoken = :token";
 
     return OBDal.getInstance()
         .getSession()
         .createQuery(hql)
         .setParameter("token", token)
+        .setParameter("author", user)
         .executeUpdate();
   }
 
