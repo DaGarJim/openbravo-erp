@@ -17,7 +17,7 @@
  ************************************************************************
  */
 
-package org.openbravo.authentication;
+package org.openbravo.email;
 
 import javax.enterprise.event.Observes;
 
