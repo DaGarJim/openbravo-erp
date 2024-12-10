@@ -43,6 +43,13 @@ import org.openbravo.dal.service.OBDal;
 import org.openbravo.model.ad.access.User;
 import org.openbravo.service.password.PasswordStrengthChecker;
 
+/**
+ * Second servlet created for the "Forgot Password" functionality, meant to be used when a user
+ * wants to reset his password with a new one.
+ * <p>
+ * It receives the new password and makes all the appropriate checks to validate that the password
+ * can be securely changed.
+ */
 public class ResetPasswordWithTokenService extends HttpServlet {
 
   private static final long serialVersionUID = 1L;

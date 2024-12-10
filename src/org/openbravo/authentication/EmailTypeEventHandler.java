@@ -30,6 +30,10 @@ import org.openbravo.dal.core.OBContext;
 import org.openbravo.erpCommon.utility.OBMessageUtils;
 import org.openbravo.model.authentication.EmailType;
 
+/**
+ * Event handler for the {@link EmailType} object that ensures the entry is only created at system
+ * level
+ */
 public class EmailTypeEventHandler extends EntityPersistenceEventObserver {
 
   private static Entity[] entities = {

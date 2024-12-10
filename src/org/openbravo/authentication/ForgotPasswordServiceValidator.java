@@ -30,6 +30,10 @@ import org.codehaus.jettison.json.JSONObject;
 import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.common.enterprise.Organization;
 
+/**
+ * Validator intended to be used in the {@link ForgotPasswordService} servlet, which validates the
+ * received request for the application in which it is being used.
+ */
 public interface ForgotPasswordServiceValidator {
 
   public void validate(Client client, Organization org, JSONObject body)

@@ -70,8 +70,11 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.TemplateException;
 
 /**
- * Loads into a core2 application the authentication provider configurations that are available for
- * that application
+ * First servlet created for the "Forgot Password" functionality, designed to be used when a
+ * password reset has been requested for a specific user
+ * <p>
+ * Initializes the parameters and performs the initial checks necessary to ensure that the password
+ * reset can be performed safely.
  */
 public class ForgotPasswordService extends HttpServlet {
 
