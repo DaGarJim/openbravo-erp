@@ -95,7 +95,6 @@ public class ResetPasswordWithTokenService extends HttpServlet {
       updateIsRedeemedValue(token);
       User user = OBDal.getInstance().get(User.class, userId);
       user.setPassword(PasswordHash.generateHash(newPwd));
-      OBDal.getInstance().save(user);
       OBDal.getInstance().flush();
 
       writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
