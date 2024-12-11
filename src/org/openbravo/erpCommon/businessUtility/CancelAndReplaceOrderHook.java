@@ -11,7 +11,7 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2016-2019 Openbravo SLU
+ * All portions are Copyright (C) 2016-2024 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  *************************************************************************
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.base.Prioritizable;
 import org.openbravo.model.common.order.Order;
 
 /**
@@ -32,7 +33,7 @@ import org.openbravo.model.common.order.Order;
  * @author openbravo
  * 
  */
-public abstract class CancelAndReplaceOrderHook {
+public abstract class CancelAndReplaceOrderHook implements Prioritizable {
 
   /**
    * Exec method that all hooks extending this abstract class must implement.

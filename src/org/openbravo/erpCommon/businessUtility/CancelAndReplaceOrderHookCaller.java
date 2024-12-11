@@ -11,7 +11,7 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2016-2019 Openbravo SLU
+ * All portions are Copyright (C) 2016-2024 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  *************************************************************************
@@ -22,11 +22,8 @@ package org.openbravo.erpCommon.businessUtility;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import org.codehaus.jettison.json.JSONObject;
+import org.openbravo.base.weld.WeldUtils;
 import org.openbravo.model.common.order.Order;
 
 /**
@@ -35,9 +32,8 @@ import org.openbravo.model.common.order.Order;
  * 
  */
 public class CancelAndReplaceOrderHookCaller {
-  @Inject
-  @Any
-  private Instance<CancelAndReplaceOrderHook> cancelAndReplaceOrderHookProcesses;
+  private List<CancelAndReplaceOrderHook> cancelAndReplaceOrderHookProcesses = WeldUtils
+      .getInstancesSortedByPriority(CancelAndReplaceOrderHook.class);
 
   /**
    * Method that executes all classes of type CancelAndReplaceOrderHook.
