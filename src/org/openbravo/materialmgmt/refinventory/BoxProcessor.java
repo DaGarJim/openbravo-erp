@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2017-2018 Openbravo SLU 
+ * All portions are Copyright (C) 2017-2024 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -43,8 +43,8 @@ import org.openbravo.model.materialmgmt.onhandquantity.StorageDetail;
  */
 public class BoxProcessor extends ReferencedInventoryProcessor {
   private String newStorageBinId;
-  // StorageDetailId:NewAttributeSetInstanceId created by this object
-  private final Map<String, String> storageDetailNewAttributeIdMap;
+  // RI_OriginalAttributeSetInstanceId:NewAttributeSetInstanceId created by this object
+  private Map<String, String> generatedAttributeSetInstanceCache = new HashMap<>();
 
   // RIs in the storage details to box without a parent RI
   private final Set<String> outterMostRefInventoryIdsToBox = new HashSet<>();
@@ -83,7 +83,6 @@ public class BoxProcessor extends ReferencedInventoryProcessor {
     checkReferencedInventoryIsOutermost(referencedInventory);
     setAndValidateNewStorageBinId(newStorageBinId);
     setAffectedRefInventoryIds(selectedStorageDetails);
-    storageDetailNewAttributeIdMap = new HashMap<>(selectedStorageDetails.length());
   }
 
   private void checkReferencedInventoryIsOutermost(ReferencedInventory referencedInventory) {
@@ -118,28 +117,9 @@ public class BoxProcessor extends ReferencedInventoryProcessor {
 
   @Override
   protected AttributeSetInstance getAttributeSetInstanceTo(final StorageDetail storageDetail) {
-    // Attribute previously created in this box execution
-    if (storageDetailNewAttributeIdMap.containsKey(storageDetail.getId())) {
-      return OBDal.getInstance()
-          .getProxy(AttributeSetInstance.class,
-              storageDetailNewAttributeIdMap.get(storageDetail.getId()));
-    }
-
-    // Attribute previously created in other box executions for this refInventory
-    final AttributeSetInstance previouslyClonedAttributeSetInstance = ReferencedInventoryUtil
-        .getAlreadyClonedAttributeSetInstance(storageDetail.getAttributeSetValue(),
-            getReferencedInventory());
-    if (previouslyClonedAttributeSetInstance == null) {
-      final AttributeSetInstance newAttributeSetInstance = ReferencedInventoryUtil
-          .cloneAttributeSetInstance(storageDetail.getAttributeSetValue(),
-              getReferencedInventory());
-      storageDetailNewAttributeIdMap.put(storageDetail.getId(), newAttributeSetInstance.getId());
-      return newAttributeSetInstance;
-    } else {
-      storageDetailNewAttributeIdMap.put(storageDetail.getId(),
-          previouslyClonedAttributeSetInstance.getId());
-      return previouslyClonedAttributeSetInstance;
-    }
+    return new BoxingAttributeSetInstanceToBuilder(getReferencedInventory(),
+        storageDetail.getAttributeSetValue()).withCache(generatedAttributeSetInstanceCache)
+            .build();
   }
 
   @Override
