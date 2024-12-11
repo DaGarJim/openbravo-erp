@@ -110,7 +110,8 @@ public class ResetPasswordWithTokenService extends HttpServlet {
       user.setPassword(PasswordHash.generateHash(newPwd));
       OBDal.getInstance().flush();
 
-      writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
+      writeResult(response, new JSONObject(
+          Map.of("result", "SUCCESS", "userName", user.getName(), "userId", user.getId())));
 
     } catch (ForgotPasswordException ex) {
       JSONObject result = new JSONObject(Map.of("result", ex.getResult(), "clientMsg",
