@@ -48,6 +48,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hibernate.criterion.Restrictions;
 import org.openbravo.base.provider.OBProvider;
 import org.openbravo.dal.core.OBContext;
+import org.openbravo.dal.security.OrganizationStructureProvider;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.email.EmailEventException;
 import org.openbravo.email.EmailUtils;
@@ -244,19 +245,24 @@ public class ForgotPasswordService extends HttpServlet {
 
   private EmailTemplate getEmailTemplate(User user, Organization org, Client client)
       throws ForgotPasswordException {
+    if (org == null) {
+      throw new ForgotPasswordException(
+          OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
+    }
+
     List<EmailTemplate> emailTemplates = OBDal.getInstance()
         .createCriteria(EmailTemplate.class)
         .add(Restrictions.eq(EmailTemplate.PROPERTY_EMAILTYPE,
             OBDal.getInstance().get(EmailType.class, "5209BE52755B49C582F034E9B98B3F33")))
-        .addOrderBy(EmailTemplate.PROPERTY_ID, true)
+        .add(Restrictions.eq(EmailTemplate.PROPERTY_ORGANIZATION, org))
         .setFilterOnActive(true)
         .setFilterOnReadableClients(false)
         .setFilterOnReadableOrganization(false)
         .list();
 
     if (emailTemplates.isEmpty()) {
-      throw new ForgotPasswordException(
-          OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
+      OrganizationStructureProvider orgStructure = new OrganizationStructureProvider();
+      return getEmailTemplate(user, orgStructure.getParentOrg(org), client);
     }
 
     Optional<EmailTemplate> emailTemplate = filterEmailTemplates(emailTemplates,
