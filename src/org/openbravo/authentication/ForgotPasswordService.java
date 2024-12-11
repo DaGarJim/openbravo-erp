@@ -76,6 +76,8 @@ import freemarker.template.TemplateException;
  */
 public class ForgotPasswordService extends HttpServlet {
 
+  // 15 minutes
+  public static final long EXPIRATION_TIME = 15;
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
@@ -335,6 +337,7 @@ public class ForgotPasswordService extends HttpServlet {
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
     emailData.put("change_password_url", url);
+    emailData.put("reset_password_timeout", EXPIRATION_TIME);
 
     final StringWriter output = new StringWriter();
     templateImplementation.process(emailData, output);

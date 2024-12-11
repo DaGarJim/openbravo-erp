@@ -56,7 +56,7 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   private static final Logger log = LogManager.getLogger();
 
   // 15 minutes
-  private static final long EXPIRATION_TIME = 15 * 60 * 1000;
+  private static final long EXPIRATION_TIME = ForgotPasswordService.EXPIRATION_TIME * 60 * 1000;
 
   @Inject
   private PasswordStrengthChecker passwordStrengthChecker;
