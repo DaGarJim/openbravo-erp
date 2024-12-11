@@ -27,7 +27,6 @@ import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.security.OrganizationStructureProvider;
 import org.openbravo.dal.service.OBCriteria;
 import org.openbravo.dal.service.OBDal;
-import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.common.enterprise.EmailServerConfiguration;
 import org.openbravo.model.common.enterprise.Organization;
 
@@ -49,18 +48,14 @@ public class EmailUtils {
    * @return EmailServerConfiguration of the Organization.
    */
   public static EmailServerConfiguration getEmailConfiguration(Organization organization) {
-    return getEmailConfiguration(organization, OBContext.getOBContext().getCurrentClient());
-  }
-
-  public static EmailServerConfiguration getEmailConfiguration(Organization organization,
-      Client client) {
     EmailServerConfiguration emailConfiguration = null;
     try {
       if (organization != null) {
         OBCriteria<EmailServerConfiguration> mailConfigCriteria = OBDal.getInstance()
             .createCriteria(EmailServerConfiguration.class)
             .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_ORGANIZATION, organization))
-            .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_CLIENT, client))
+            .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_CLIENT,
+                OBContext.getOBContext().getCurrentClient()))
             .setFilterOnActive(true)
             .setFilterOnReadableClients(false)
             .setFilterOnReadableOrganization(false);

@@ -167,8 +167,10 @@ public class ForgotPasswordService extends HttpServlet {
 
   private EmailServerConfiguration getEmailConfiguration(Organization org, Client client)
       throws JSONException {
-    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org, client);
+    OBContext.getOBContext().setCurrentClient(client);
+    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org);
     if (emailConfig == null) {
+      OBContext.getOBContext().setCurrentClient(OBDal.getInstance().get(Client.class, "0"));
       emailConfig = EmailUtils.getEmailConfiguration(org);
     }
     return emailConfig;
