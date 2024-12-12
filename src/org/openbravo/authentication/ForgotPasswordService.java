@@ -312,8 +312,6 @@ public class ForgotPasswordService extends HttpServlet {
             : "text/plain; charset=utf-8")
         .build();
 
-    emailTemplate.isObpos2Ishtml();
-
     EmailManager.sendEmail(emailConfig, email);
   }
 
