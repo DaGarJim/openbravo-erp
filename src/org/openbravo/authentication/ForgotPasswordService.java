@@ -127,8 +127,9 @@ public class ForgotPasswordService extends HttpServlet {
       if (emailConfig == null) {
         log.warn("Email configuration not found for client/organization: {}/{}",
             client.getIdentifier(), org.getIdentifier());
-        throw new ForgotPasswordException("Email configuration not found for client/organization: "
-            + client.getIdentifier() + "/" + org.getIdentifier());
+        throw new ForgotPasswordException("ERROR_MAIL_CONFIGURATION", "",
+            "Email configuration not found for client/organization: " + client.getIdentifier() + "/"
+                + org.getIdentifier());
       }
 
       String userOrEmail = body.getString("userOrEmail");
