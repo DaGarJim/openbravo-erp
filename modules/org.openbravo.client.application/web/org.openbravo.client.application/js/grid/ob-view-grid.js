@@ -11,7 +11,7 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2010-2023 Openbravo SLU
+ * All portions are Copyright (C) 2010-2024 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -3140,6 +3140,13 @@ isc.OBViewGrid.addProperties({
             if (!filterFormItem.getRecordIdentifierFromId(record[field.name])) {
               // if the filter editor does not know about this record, add the its id and its identifier to the auxiliary filter cache
               cacheElement[OB.Constants.ID] = record[field.name];
+              if (
+                field.filterEditorProperties &&
+                field.filterEditorProperties.keyProperty
+              ) {
+                cacheElement[field.filterEditorProperties.keyProperty] =
+                  record[field.name];
+              }
               cacheElement[OB.Constants.IDENTIFIER] =
                 record[
                   field.name +
