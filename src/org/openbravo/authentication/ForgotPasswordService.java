@@ -268,19 +268,22 @@ public class ForgotPasswordService extends HttpServlet {
     }
 
     Optional<EmailTemplate> emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage().getId().equals(user.getDefaultLanguage().getId()));
+        template -> template.getLanguage() != null && user.getDefaultLanguage() != null
+            && template.getLanguage().getId().equals(user.getDefaultLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
 
     emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage().getId().equals(org.getLanguage().getId()));
+        template -> template.getLanguage() != null && org.getLanguage() != null
+            && template.getLanguage().getId().equals(org.getLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
 
     emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage().getId().equals(client.getLanguage().getId()));
+        template -> template.getLanguage() != null && client.getLanguage() != null
+            && template.getLanguage().getId().equals(client.getLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
