@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<data>
+<!--D894EFE020E640AC99CE16C711D10088--><C_POC_EMAILDEFINITION>
+<!--D894EFE020E640AC99CE16C711D10088-->  <C_POC_EMAILDEFINITION_ID><![CDATA[D894EFE020E640AC99CE16C711D10088]]></C_POC_EMAILDEFINITION_ID>
+<!--D894EFE020E640AC99CE16C711D10088-->  <AD_CLIENT_ID><![CDATA[0]]></AD_CLIENT_ID>
+<!--D894EFE020E640AC99CE16C711D10088-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
+<!--D894EFE020E640AC99CE16C711D10088-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
+<!--D894EFE020E640AC99CE16C711D10088-->  <SUBJECT><![CDATA[Openbravo Orisha - Forgotten Password]]></SUBJECT>
+<!--D894EFE020E640AC99CE16C711D10088-->  <BODY><![CDATA[<#if user.firstName??>
+Hello ${user.firstName}
+<#else>
+Hello ${user.username}
+</#if>
+
+We've received a request to regenerate your password for your Openbravo - Orisha Retail Chain Account.
+
+Click on the link below to create your new password.
+${change_password_url}
+
+If you have not been requesting a new password, please contact your IT system to alert them about this request.
+
+Remember that the link will be valid for ${reset_password_timeout} minutes.
+
+Best Regards]]></BODY>
+<!--D894EFE020E640AC99CE16C711D10088-->  <ISDEFAULT><![CDATA[N]]></ISDEFAULT>
+<!--D894EFE020E640AC99CE16C711D10088-->  <AD_LANGUAGE><![CDATA[en_US]]></AD_LANGUAGE>
+<!--D894EFE020E640AC99CE16C711D10088-->  <C_EMAIL_TYPE_ID><![CDATA[5209BE52755B49C582F034E9B98B3F33]]></C_EMAIL_TYPE_ID>
+<!--D894EFE020E640AC99CE16C711D10088-->  <EM_OBPOS2_ISHTML><![CDATA[N]]></EM_OBPOS2_ISHTML>
+<!--D894EFE020E640AC99CE16C711D10088--></C_POC_EMAILDEFINITION>
+
+</data>
