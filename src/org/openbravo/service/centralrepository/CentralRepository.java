@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2019 Openbravo SLU 
+ * All portions are Copyright (C) 2019-2024 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):
  ************************************************************************
@@ -128,14 +128,13 @@ public class CentralRepository {
       ((HttpPost) request).setEntity(requestEntity);
     }
 
+    log.trace("Sending request [{}] payload: {}", request.getURI(), payload);
+
     try (CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse rawResponse = httpclient.execute(request)) {
-
-      log.trace("Sending request [{}] payload: {}", request.getURI(), payload);
-
-      String result = new BufferedReader(
-          new InputStreamReader(rawResponse.getEntity().getContent())).lines()
-              .collect(Collectors.joining("\n"));
+        CloseableHttpResponse rawResponse = httpclient.execute(request);
+        BufferedReader br = new BufferedReader(
+            new InputStreamReader(rawResponse.getEntity().getContent()))) {
+      String result = br.lines().collect(Collectors.joining("\n"));
 
       log.debug("Processed to Central Repository {} with status {} in {} ms", request.getURI(),
           rawResponse.getStatusLine().getStatusCode(), System.currentTimeMillis() - t);
