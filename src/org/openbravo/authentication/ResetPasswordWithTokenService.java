@@ -55,9 +55,6 @@ public class ResetPasswordWithTokenService extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
-  // 15 minutes
-  private static final long EXPIRATION_TIME = ForgotPasswordService.EXPIRATION_TIME * 60 * 1000;
-
   @Inject
   private PasswordStrengthChecker passwordStrengthChecker;
 
@@ -94,12 +91,19 @@ public class ResetPasswordWithTokenService extends HttpServlet {
       Boolean isRedeemed = tokenEntry.get(1, Boolean.class);
       Timestamp creationDate = tokenEntry.get(2, Timestamp.class);
 
-      if (!checkExpirationOfToken(creationDate, isRedeemed)) {
+      User user = OBDal.getInstance().get(User.class, userId);
+      String hql = "select cli.resetPasswordLinkTimeout from ClientInformation cli where cli.client.id = :clientid";
+      Long resetPasswordLinkTimeout = OBDal.getInstance()
+          .getSession()
+          .createQuery(hql, Long.class)
+          .setParameter("clientid", user.getClient().getId())
+          .uniqueResult();
+
+      if (!checkExpirationOfToken(creationDate, isRedeemed, resetPasswordLinkTimeout)) {
         log.warn("Token expired"); // DO NOT LOG PASSWORDS / SECRETS
         throw new ForgotPasswordException("Token not valid.");
       }
 
-      User user = OBDal.getInstance().get(User.class, userId);
       if (PasswordHash.matches(newPwd, user.getPassword())) {
         log.warn("The user has introduced the same password");
         throw new ForgotPasswordException("ERROR_SAMEPASSWORD", "",
@@ -124,10 +128,12 @@ public class ResetPasswordWithTokenService extends HttpServlet {
     }
   }
 
-  private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed) {
+  private boolean checkExpirationOfToken(Timestamp creationDate, boolean isRedeemed,
+      Long expirationTimeMinutes) {
     Date now = new Date();
     long difference = now.getTime() - creationDate.getTime();
-    boolean valid = difference < EXPIRATION_TIME;
+    long expirationTime = expirationTimeMinutes * 60 * 1000;
+    boolean valid = difference < expirationTime;
     return !isRedeemed && valid;
   }
 

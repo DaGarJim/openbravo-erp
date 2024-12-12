@@ -305,7 +305,7 @@ public class ForgotPasswordService extends HttpServlet {
       EmailServerConfiguration emailConfig, User user, String url, EmailTemplate emailTemplate)
       throws Exception {
     String emailTemplateBody = emailTemplate.getBody();
-    String emailBody = processBodyWithFreemarker(user, url, emailTemplateBody);
+    String emailBody = processBodyWithFreemarker(user, url, client, emailTemplateBody);
 
     final EmailInfo email = new EmailInfo.Builder() //
         .setSubject(emailTemplate.getSubject()) //
@@ -327,18 +327,25 @@ public class ForgotPasswordService extends HttpServlet {
     return (Boolean) emailTemplate.get("obpos2Ishtml");
   }
 
-  private String processBodyWithFreemarker(User user, String url, String emailTemplateBody)
-      throws IOException, TemplateException {
+  private String processBodyWithFreemarker(User user, String url, Client client,
+      String emailTemplateBody) throws IOException, TemplateException {
     final Configuration configuration = new Configuration();
     configuration.setObjectWrapper(new DefaultObjectWrapper());
 
     freemarker.template.Template templateImplementation = new freemarker.template.Template(
         "template", new StringReader(emailTemplateBody), configuration);
 
+    String hql = "select cli.resetPasswordLinkTimeout from ClientInformation cli where cli.client.id = :clientid";
+    Long resetPasswordLinkTimeout = OBDal.getInstance()
+        .getSession()
+        .createQuery(hql, Long.class)
+        .setParameter("clientid", client.getId())
+        .uniqueResult();
+
     Map<String, Object> emailData = new HashMap<String, Object>();
     emailData.put("user", user);
     emailData.put("change_password_url", url);
-    emailData.put("reset_password_timeout", EXPIRATION_TIME);
+    emailData.put("reset_password_timeout", resetPasswordLinkTimeout);
 
     final StringWriter output = new StringWriter();
     templateImplementation.process(emailData, output);
