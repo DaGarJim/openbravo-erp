@@ -76,5 +76,9 @@
         <index-column name="C_POC_DOCTYPE_TEMPLATE_ID"/>
         <whereClause><![CDATA[C_POC_DOCTYPE_TEMPLATE_ID IS NOT NULL]]></whereClause>
       </index>
+      <index name="C_POCEMAILDEF_EMAILTYPE_IDX" unique="false">
+        <index-column name="C_EMAIL_TYPE_ID"/>
+        <whereClause><![CDATA[C_EMAIL_TYPE_ID IS NOT NULL]]></whereClause>
+      </index>
     </table>
   </database>
