@@ -211,8 +211,9 @@ public class UpdateInvariantCharacteristicsHandler extends BaseActionHandler {
         .collect(Collectors.toSet());
     //@formatter:off
     final String hql = "delete from ProductCharacteristicValue pchv " +
-                       "where pchv.product.id = :productId " + 
-                       "  and pchv.id not in :prodChValueIds ";
+                       " where pchv.product.id = :productId " + 
+                       " and not exists (select 1 from Characteristic c where c.id=pchv.characteristic.id and c.variant = 'Y') "+
+                       " and pchv.id not in :prodChValueIds ";
     //@formatter:on
 
     OBDal.getInstance()
