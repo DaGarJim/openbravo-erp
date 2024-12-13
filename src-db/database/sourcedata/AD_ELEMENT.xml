@@ -21229,8 +21229,8 @@ If one of the trees of a table uses the ADTree tree structure, that must be the 
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <AD_ORG_ID><![CDATA[0]]></AD_ORG_ID>
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <ISACTIVE><![CDATA[Y]]></ISACTIVE>
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <COLUMNNAME><![CDATA[Reset_Password_Link_Timeout]]></COLUMNNAME>
-<!--09D178D62D514E39A11A4B5C43CC14BF-->  <NAME><![CDATA[Reset Password Link Timeout]]></NAME>
-<!--09D178D62D514E39A11A4B5C43CC14BF-->  <PRINTNAME><![CDATA[Reset Password Link Timeout]]></PRINTNAME>
+<!--09D178D62D514E39A11A4B5C43CC14BF-->  <NAME><![CDATA[Reset Password Link Timeout (Minutes)]]></NAME>
+<!--09D178D62D514E39A11A4B5C43CC14BF-->  <PRINTNAME><![CDATA[Reset Password Link Timeout (Minutes)]]></PRINTNAME>
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <DESCRIPTION><![CDATA[Timeout for the link generated when requesting a password reset]]></DESCRIPTION>
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <HELP><![CDATA[Timeout for the link generated when requesting a password reset. It would be 15 minutes by default]]></HELP>
 <!--09D178D62D514E39A11A4B5C43CC14BF-->  <AD_MODULE_ID><![CDATA[0]]></AD_MODULE_ID>
