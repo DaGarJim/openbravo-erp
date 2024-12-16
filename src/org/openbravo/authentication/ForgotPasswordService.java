@@ -84,6 +84,11 @@ public class ForgotPasswordService extends HttpServlet {
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
+  private User user;
+  private Organization org;
+  private Client client;
+  private EmailServerConfiguration emailConfig;
+
   @Inject
   @Any
   private Instance<ForgotPasswordServiceValidator> validateInstances;
@@ -94,68 +99,10 @@ public class ForgotPasswordService extends HttpServlet {
 
     try {
       OBContext.setAdminMode(true);
-      JSONObject body = new JSONObject(IOUtils.toString(request.getReader()));
 
-      String strAppName = body.optString("appName");
-      if (strAppName.isEmpty()) {
-        log.warn("Parameter appName not defined in the request");
-        throw new ForgotPasswordException("Parameter appName not defined in the request");
-      }
+      processForgotPwdRequest(request, response);
+      executeSendChangePasswordEmail(request, response);
 
-      String strOrgId = body.optString("organization");
-      if (strOrgId.isEmpty()) {
-        log.warn("Parameter organization not defined in the request");
-        throw new ForgotPasswordException("Parameter organization not defined in the request");
-      }
-      Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
-
-      String strClientId = body.optString("client");
-      if (strClientId.isEmpty()) {
-        log.warn("Parameter client not defined in the request");
-        throw new ForgotPasswordException("Parameter client not defined in the request");
-      }
-      Client client = OBDal.getInstance().get(Client.class, strClientId);
-
-      ForgotPasswordServiceValidator validator = validateInstances
-          .select(new ForgotPasswordServiceValidator.Selector(strAppName))
-          .get();
-
-      validator.validate(client, org, body);
-
-      EmailServerConfiguration emailConfig = getEmailConfiguration(org, client);
-
-      if (emailConfig == null) {
-        log.warn("Email configuration not found for client/organization: {}/{}",
-            client.getIdentifier(), org.getIdentifier());
-        throw new ForgotPasswordException("ERROR_MAIL_CONFIGURATION", "",
-            "Email configuration not found for client/organization: " + client.getIdentifier() + "/"
-                + org.getIdentifier());
-      }
-
-      String userOrEmail = body.getString("userOrEmail");
-      User user = getValidUser(userOrEmail);
-      if (user != null) {
-
-        String token = generateAndPersistToken(user, client, org);
-        String tokenURL = generateChangePasswordURL(request, token);
-
-        Runnable r = () -> {
-          try {
-            OBContext.setAdminMode(true);
-            EmailTemplate emailTemplate = getEmailTemplate(user, org, client);
-            sendChangePasswordEmail(org, client, emailConfig, user, tokenURL, emailTemplate);
-          } catch (EmailEventException ex) {
-            log.error("Error sending the email", ex);
-          } catch (ForgotPasswordException ex) {
-            log.error("Error getting email template", ex);
-          } catch (Exception ex) {
-            log.error("Error with forgot password service", ex);
-          } finally {
-            OBContext.restorePreviousMode();
-          }
-        };
-        new Thread(r).start();
-      }
       writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
     } catch (ForgotPasswordException ex) {
       JSONObject result = new JSONObject(Map.of("result", ex.getResult(), "clientMsg",
@@ -169,10 +116,79 @@ public class ForgotPasswordService extends HttpServlet {
     }
   }
 
-  private EmailServerConfiguration getEmailConfiguration(Organization org, Client client)
-      throws JSONException {
+  public void processForgotPwdRequest(HttpServletRequest request, HttpServletResponse response)
+      throws JSONException, IOException, ForgotPasswordException, URISyntaxException {
+    JSONObject body = new JSONObject(IOUtils.toString(request.getReader()));
+
+    String strAppName = body.optString("appName");
+    if (strAppName.isEmpty()) {
+      log.warn("Parameter appName not defined in the request");
+      throw new ForgotPasswordException("Parameter appName not defined in the request");
+    }
+
+    String strOrgId = body.optString("organization");
+    if (strOrgId.isEmpty()) {
+      log.warn("Parameter organization not defined in the request");
+      throw new ForgotPasswordException("Parameter organization not defined in the request");
+    }
+    org = OBDal.getInstance().get(Organization.class, strOrgId);
+
+    String strClientId = body.optString("client");
+    if (strClientId.isEmpty()) {
+      log.warn("Parameter client not defined in the request");
+      throw new ForgotPasswordException("Parameter client not defined in the request");
+    }
+    client = OBDal.getInstance().get(Client.class, strClientId);
+
+    ForgotPasswordServiceValidator validator = validateInstances
+        .select(new ForgotPasswordServiceValidator.Selector(strAppName))
+        .get();
+
+    validator.validate(client, org, body);
+
+    emailConfig = getEmailConfiguration();
+
+    if (emailConfig == null) {
+      log.warn("Email configuration not found for client/organization: {}/{}",
+          client.getIdentifier(), org.getIdentifier());
+      throw new ForgotPasswordException("ERROR_MAIL_CONFIGURATION", "",
+          "Email configuration not found for client/organization: " + client.getIdentifier() + "/"
+              + org.getIdentifier());
+    }
+
+    String userOrEmail = body.getString("userOrEmail");
+    user = getValidUser(userOrEmail);
+  }
+
+  public void executeSendChangePasswordEmail(HttpServletRequest request,
+      HttpServletResponse response) throws URISyntaxException {
+    if (user != null) {
+
+      String token = generateAndPersistToken(user, client, org);
+      String tokenURL = generateChangePasswordURL(request, token);
+
+      Runnable r = () -> {
+        try {
+          OBContext.setAdminMode(true);
+          EmailTemplate emailTemplate = getEmailTemplate(user, org, client);
+          sendChangePasswordEmail(org, client, emailConfig, user, tokenURL, emailTemplate);
+        } catch (EmailEventException ex) {
+          log.error("Error sending the email", ex);
+        } catch (ForgotPasswordException ex) {
+          log.error("Error getting email template", ex);
+        } catch (Exception ex) {
+          log.error("Error with forgot password service", ex);
+        } finally {
+          OBContext.restorePreviousMode();
+        }
+      };
+      new Thread(r).start();
+    }
+  }
+
+  private EmailServerConfiguration getEmailConfiguration() throws JSONException {
     OBContext.getOBContext().setCurrentClient(client);
-    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org);
+    emailConfig = EmailUtils.getEmailConfiguration(org);
     if (emailConfig == null) {
       OBContext.getOBContext().setCurrentClient(OBDal.getInstance().get(Client.class, "0"));
       emailConfig = EmailUtils.getEmailConfiguration(org);
@@ -199,28 +215,29 @@ public class ForgotPasswordService extends HttpServlet {
       return null;
     }
 
-    User user = users.get(0);
+    User userToCheck = users.get(0);
 
-    boolean userCompliesWithRules = checkUser(user);
+    boolean userCompliesWithRules = checkUser(userToCheck);
     if (!userCompliesWithRules) {
       log.warn("User does not comply with the rules: {}", userOrEmail);
       return null;
     }
-    return user;
+    return userToCheck;
   }
 
-  private boolean checkUser(User user) {
-    return user.isActive() && user.getEmail() != null && !user.getEmail().isEmpty()
-        && !user.isLocked() && !user.isSsoonly();
+  private boolean checkUser(User userTocheck) {
+    return userTocheck.isActive() && userTocheck.getEmail() != null
+        && !userTocheck.getEmail().isEmpty() && !userTocheck.isLocked() && !userTocheck.isSsoonly();
   }
 
-  private String generateAndPersistToken(User user, Client client, Organization org) {
+  private String generateAndPersistToken(User userContact, Client usersClient,
+      Organization organization) {
     String token = generateNewToken();
     UserPwdResetToken resetToken = OBProvider.getInstance().get(UserPwdResetToken.class);
-    resetToken.setClient(client);
-    resetToken.setOrganization(org);
+    resetToken.setClient(usersClient);
+    resetToken.setOrganization(organization);
     resetToken.setUsertoken(token);
-    resetToken.setUserContact(user);
+    resetToken.setUserContact(userContact);
 
     OBDal.getInstance().save(resetToken);
     return token;
@@ -246,9 +263,9 @@ public class ForgotPasswordService extends HttpServlet {
 
   }
 
-  private EmailTemplate getEmailTemplate(User user, Organization org, Client client)
-      throws ForgotPasswordException {
-    if (org == null) {
+  private EmailTemplate getEmailTemplate(User userEmailTemplate, Organization organization,
+      Client cli) throws ForgotPasswordException {
+    if (organization == null) {
       throw new ForgotPasswordException(
           OBMessageUtils.getI18NMessage("NoForgottenPasswordEmailTemplatePresent"));
     }
@@ -257,7 +274,7 @@ public class ForgotPasswordService extends HttpServlet {
         .createCriteria(EmailTemplate.class)
         .add(Restrictions.eq(EmailTemplate.PROPERTY_EMAILTYPE,
             OBDal.getInstance().get(EmailType.class, "5209BE52755B49C582F034E9B98B3F33")))
-        .add(Restrictions.eq(EmailTemplate.PROPERTY_ORGANIZATION, org))
+        .add(Restrictions.eq(EmailTemplate.PROPERTY_ORGANIZATION, organization))
         .setFilterOnActive(true)
         .setFilterOnReadableClients(false)
         .setFilterOnReadableOrganization(false)
@@ -265,26 +282,28 @@ public class ForgotPasswordService extends HttpServlet {
 
     if (emailTemplates.isEmpty()) {
       OrganizationStructureProvider orgStructure = new OrganizationStructureProvider();
-      return getEmailTemplate(user, orgStructure.getParentOrg(org), client);
+      return getEmailTemplate(userEmailTemplate, orgStructure.getParentOrg(organization), cli);
     }
 
     Optional<EmailTemplate> emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage() != null && user.getDefaultLanguage() != null
-            && template.getLanguage().getId().equals(user.getDefaultLanguage().getId()));
+        template -> template.getLanguage() != null && userEmailTemplate.getDefaultLanguage() != null
+            && template.getLanguage()
+                .getId()
+                .equals(userEmailTemplate.getDefaultLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
 
     emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage() != null && org.getLanguage() != null
-            && template.getLanguage().getId().equals(org.getLanguage().getId()));
+        template -> template.getLanguage() != null && organization.getLanguage() != null
+            && template.getLanguage().getId().equals(organization.getLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
 
     emailTemplate = filterEmailTemplates(emailTemplates,
-        template -> template.getLanguage() != null && client.getLanguage() != null
-            && template.getLanguage().getId().equals(client.getLanguage().getId()));
+        template -> template.getLanguage() != null && cli.getLanguage() != null
+            && template.getLanguage().getId().equals(cli.getLanguage().getId()));
     if (emailTemplate.isPresent()) {
       return emailTemplate.get();
     }
@@ -302,21 +321,21 @@ public class ForgotPasswordService extends HttpServlet {
     return emailTemplates.stream().filter(predicate).findAny();
   }
 
-  private void sendChangePasswordEmail(Organization org, Client client,
-      EmailServerConfiguration emailConfig, User user, String url, EmailTemplate emailTemplate)
-      throws Exception {
+  private void sendChangePasswordEmail(Organization organization, Client cli,
+      EmailServerConfiguration emailConfiguration, User userWithEmai, String url,
+      EmailTemplate emailTemplate) throws Exception {
     String emailTemplateBody = emailTemplate.getBody();
-    String emailBody = processBodyWithFreemarker(user, url, client, emailTemplateBody);
+    String emailBody = processBodyWithFreemarker(url, emailTemplateBody);
 
     final EmailInfo email = new EmailInfo.Builder() //
         .setSubject(emailTemplate.getSubject()) //
-        .setRecipientTO(user.getEmail()) //
+        .setRecipientTO(userWithEmai.getEmail()) //
         .setContent(emailBody) //
         .setContentType(isTemplateHTML(emailTemplate) ? "text/html; charset=utf-8"
             : "text/plain; charset=utf-8")
         .build();
 
-    EmailManager.sendEmail(emailConfig, email);
+    EmailManager.sendEmail(emailConfiguration, email);
   }
 
   private boolean isTemplateHTML(EmailTemplate emailTemplate) {
@@ -328,8 +347,8 @@ public class ForgotPasswordService extends HttpServlet {
     return (Boolean) emailTemplate.get("obpos2Ishtml");
   }
 
-  private String processBodyWithFreemarker(User user, String url, Client client,
-      String emailTemplateBody) throws IOException, TemplateException {
+  private String processBodyWithFreemarker(String url, String emailTemplateBody)
+      throws IOException, TemplateException {
     final Configuration configuration = new Configuration();
     configuration.setObjectWrapper(new DefaultObjectWrapper());
 
