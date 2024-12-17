@@ -124,3 +124,18 @@ OB.OnChange.refInventoryUnboxSelection = function(item, view, form, grid) {
     unboxToIndividualItemsFlag.setValue(true);
   }
 };
+
+//**  {{{OB.OnChange.salesObjectiveOrgSelection}}}**
+// Set the currency based on the organization selected using the output field.
+OB.OnChange.salesObjectiveOrgSelection = function(item, view, form, grid) {
+  var currency = form.getItem('currency');
+  var orgCurrency = form.hiddenInputs['inpadOrgId_CURRID'];
+  if (orgCurrency) {
+    if (!currency.valueMap) {
+      // Initializa valueMap the first time it is set.
+      currency.valueMap = currency.valueMap || {};
+      currency.valueMap[orgCurrency] = form.hiddenInputs['inpadOrgId_CURR'];
+    }
+    currency.setValue(orgCurrency);
+  }
+};
