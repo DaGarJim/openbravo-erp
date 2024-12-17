@@ -76,18 +76,11 @@ import freemarker.template.TemplateException;
  */
 public class ForgotPasswordService extends HttpServlet {
 
-  // 15 minutes
-  public static final long EXPIRATION_TIME = 15;
   private static final long serialVersionUID = 1L;
   private static final Logger log = LogManager.getLogger();
 
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
-
-  private User user;
-  private Organization org;
-  private Client client;
-  private EmailServerConfiguration emailConfig;
 
   @Inject
   @Any
@@ -100,8 +93,8 @@ public class ForgotPasswordService extends HttpServlet {
     try {
       OBContext.setAdminMode(true);
 
-      processForgotPwdRequest(request, response);
-      executeSendChangePasswordEmail(request, response);
+      ForgotPasswordInstance forgot = processForgotPwdRequest(request, response);
+      executeSendChangePasswordEmail(request, response, forgot);
 
       writeResult(response, new JSONObject(Map.of("result", "SUCCESS")));
     } catch (ForgotPasswordException ex) {
@@ -116,7 +109,8 @@ public class ForgotPasswordService extends HttpServlet {
     }
   }
 
-  public void processForgotPwdRequest(HttpServletRequest request, HttpServletResponse response)
+  public ForgotPasswordInstance processForgotPwdRequest(HttpServletRequest request,
+      HttpServletResponse response)
       throws JSONException, IOException, ForgotPasswordException, URISyntaxException {
     JSONObject body = new JSONObject(IOUtils.toString(request.getReader()));
 
@@ -131,14 +125,14 @@ public class ForgotPasswordService extends HttpServlet {
       log.warn("Parameter organization not defined in the request");
       throw new ForgotPasswordException("Parameter organization not defined in the request");
     }
-    org = OBDal.getInstance().get(Organization.class, strOrgId);
+    Organization org = OBDal.getInstance().get(Organization.class, strOrgId);
 
     String strClientId = body.optString("client");
     if (strClientId.isEmpty()) {
       log.warn("Parameter client not defined in the request");
       throw new ForgotPasswordException("Parameter client not defined in the request");
     }
-    client = OBDal.getInstance().get(Client.class, strClientId);
+    Client client = OBDal.getInstance().get(Client.class, strClientId);
 
     ForgotPasswordServiceValidator validator = validateInstances
         .select(new ForgotPasswordServiceValidator.Selector(strAppName))
@@ -146,7 +140,7 @@ public class ForgotPasswordService extends HttpServlet {
 
     validator.validate(client, org, body);
 
-    emailConfig = getEmailConfiguration();
+    EmailServerConfiguration emailConfig = getEmailConfiguration(client, org);
 
     if (emailConfig == null) {
       log.warn("Email configuration not found for client/organization: {}/{}",
@@ -157,21 +151,24 @@ public class ForgotPasswordService extends HttpServlet {
     }
 
     String userOrEmail = body.getString("userOrEmail");
-    user = getValidUser(userOrEmail);
+    User user = getValidUser(userOrEmail);
+
+    return new ForgotPasswordInstance(client, org, user, emailConfig);
   }
 
   public void executeSendChangePasswordEmail(HttpServletRequest request,
-      HttpServletResponse response) throws URISyntaxException {
-    if (user != null) {
+      HttpServletResponse response, ForgotPasswordInstance inst) throws URISyntaxException {
+    if (inst.user != null) {
 
-      String token = generateAndPersistToken(user, client, org);
+      String token = generateAndPersistToken(inst.user, inst.client, inst.org);
       String tokenURL = generateChangePasswordURL(request, token);
 
       Runnable r = () -> {
         try {
           OBContext.setAdminMode(true);
-          EmailTemplate emailTemplate = getEmailTemplate(user, org, client);
-          sendChangePasswordEmail(org, client, emailConfig, user, tokenURL, emailTemplate);
+          EmailTemplate emailTemplate = getEmailTemplate(inst.user, inst.org, inst.client);
+          sendChangePasswordEmail(inst.client, inst.org, inst.user, inst.emailConfig, tokenURL,
+              emailTemplate);
         } catch (EmailEventException ex) {
           log.error("Error sending the email", ex);
         } catch (ForgotPasswordException ex) {
@@ -186,9 +183,10 @@ public class ForgotPasswordService extends HttpServlet {
     }
   }
 
-  private EmailServerConfiguration getEmailConfiguration() throws JSONException {
+  private EmailServerConfiguration getEmailConfiguration(Client client, Organization org)
+      throws JSONException {
     OBContext.getOBContext().setCurrentClient(client);
-    emailConfig = EmailUtils.getEmailConfiguration(org);
+    EmailServerConfiguration emailConfig = EmailUtils.getEmailConfiguration(org);
     if (emailConfig == null) {
       OBContext.getOBContext().setCurrentClient(OBDal.getInstance().get(Client.class, "0"));
       emailConfig = EmailUtils.getEmailConfiguration(org);
@@ -321,15 +319,15 @@ public class ForgotPasswordService extends HttpServlet {
     return emailTemplates.stream().filter(predicate).findAny();
   }
 
-  private void sendChangePasswordEmail(Organization organization, Client cli,
-      EmailServerConfiguration emailConfiguration, User userWithEmai, String url,
-      EmailTemplate emailTemplate) throws Exception {
+  private void sendChangePasswordEmail(Client cli, Organization organization, User user,
+      EmailServerConfiguration emailConfiguration, String url, EmailTemplate emailTemplate)
+      throws Exception {
     String emailTemplateBody = emailTemplate.getBody();
-    String emailBody = processBodyWithFreemarker(url, emailTemplateBody);
+    String emailBody = processBodyWithFreemarker(cli, user, url, emailTemplateBody);
 
     final EmailInfo email = new EmailInfo.Builder() //
         .setSubject(emailTemplate.getSubject()) //
-        .setRecipientTO(userWithEmai.getEmail()) //
+        .setRecipientTO(user.getEmail()) //
         .setContent(emailBody) //
         .setContentType(isTemplateHTML(emailTemplate) ? "text/html; charset=utf-8"
             : "text/plain; charset=utf-8")
@@ -347,8 +345,8 @@ public class ForgotPasswordService extends HttpServlet {
     return (Boolean) emailTemplate.get("obpos2Ishtml");
   }
 
-  private String processBodyWithFreemarker(String url, String emailTemplateBody)
-      throws IOException, TemplateException {
+  private String processBodyWithFreemarker(Client client, User user, String url,
+      String emailTemplateBody) throws IOException, TemplateException {
     final Configuration configuration = new Configuration();
     configuration.setObjectWrapper(new DefaultObjectWrapper());
 
@@ -385,5 +383,20 @@ public class ForgotPasswordService extends HttpServlet {
     byte[] randomBytes = new byte[24];
     secureRandom.nextBytes(randomBytes);
     return base64Encoder.encodeToString(randomBytes);
+  }
+
+  public static class ForgotPasswordInstance {
+    public ForgotPasswordInstance(Client client, Organization org, User user,
+        EmailServerConfiguration emailConfig) {
+      this.client = client;
+      this.org = org;
+      this.user = user;
+      this.emailConfig = emailConfig;
+    }
+
+    private User user;
+    private Organization org;
+    private Client client;
+    private EmailServerConfiguration emailConfig;
   }
 }
