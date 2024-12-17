@@ -79,7 +79,6 @@ public class ForgotPasswordServiceTest extends WeldBaseTest {
   private final String APP_NAME = "POS2";
   private final static String TEST_USER_NAME = "FORGOT_PWD_USER";
   private final static String TEST_USER_PWD = PasswordHash.generateHash("FORGOT_PWD_USER_PWD");
-  private static EmailTemplate generatedTemplate;
   private static User user;
   private static Client client;
   private static Organization org;
@@ -143,7 +142,6 @@ public class ForgotPasswordServiceTest extends WeldBaseTest {
       OBDal.getInstance().save(userRoles);
       OBDal.getInstance().commitAndClose();
       user = testUser;
-      generatedTemplate = template;
     } catch (Exception ex) {
       throw new OBException(
           "Could not create user for Openbravo Reset Password With Token Service testing", true);
