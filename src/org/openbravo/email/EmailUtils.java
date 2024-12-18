@@ -1,5 +1,3 @@
-package org.openbravo.email;
-
 /*
  *************************************************************************
  * The contents of this file are subject to the Openbravo  Public  License
@@ -13,11 +11,13 @@ package org.openbravo.email;
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2013 Openbravo SLU
+ * All portions are Copyright (C) 2013-2024 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  *************************************************************************
  */
+package org.openbravo.email;
+
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -52,11 +52,13 @@ public class EmailUtils {
     try {
       if (organization != null) {
         OBCriteria<EmailServerConfiguration> mailConfigCriteria = OBDal.getInstance()
-            .createCriteria(EmailServerConfiguration.class);
-        mailConfigCriteria
-            .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_ORGANIZATION, organization));
-        mailConfigCriteria.add(Restrictions.eq(EmailServerConfiguration.PROPERTY_CLIENT,
-            OBContext.getOBContext().getCurrentClient()));
+            .createCriteria(EmailServerConfiguration.class)
+            .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_ORGANIZATION, organization))
+            .add(Restrictions.eq(EmailServerConfiguration.PROPERTY_CLIENT,
+                OBContext.getOBContext().getCurrentClient()))
+            .setFilterOnActive(true)
+            .setFilterOnReadableClients(false)
+            .setFilterOnReadableOrganization(false);
 
         List<EmailServerConfiguration> mailConfigList = null;
         mailConfigList = mailConfigCriteria.list();

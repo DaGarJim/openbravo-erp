@@ -53,6 +53,10 @@
         <default/>
         <onCreateDefault/>
       </column>
+      <column name="C_EMAIL_TYPE_ID" primaryKey="false" required="false" type="VARCHAR" size="32" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_LANGUAGE" name="C_PC_EMAILDFNTN_D_LNGG">
         <reference local="AD_LANGUAGE" foreign="AD_LANGUAGE"/>
       </foreign-key>
@@ -65,9 +69,16 @@
       <foreign-key foreignTable="C_POC_DOCTYPE_TEMPLATE" name="C_POC_EMAILDEFINITION_C_POC_DO">
         <reference local="C_POC_DOCTYPE_TEMPLATE_ID" foreign="C_POC_DOCTYPE_TEMPLATE_ID"/>
       </foreign-key>
+      <foreign-key foreignTable="C_EMAIL_TYPE" name="C_POC_EMAILDEFINITION_TYPE">
+        <reference local="C_EMAIL_TYPE_ID" foreign="C_EMAIL_TYPE_ID"/>
+      </foreign-key>
       <index name="C_POCEMAILDEF_DOCTYPETEMPL_IDX" unique="false">
         <index-column name="C_POC_DOCTYPE_TEMPLATE_ID"/>
         <whereClause><![CDATA[C_POC_DOCTYPE_TEMPLATE_ID IS NOT NULL]]></whereClause>
+      </index>
+      <index name="C_POCEMAILDEF_EMAILTYPE_IDX" unique="false">
+        <index-column name="C_EMAIL_TYPE_ID"/>
+        <whereClause><![CDATA[C_EMAIL_TYPE_ID IS NOT NULL]]></whereClause>
       </index>
     </table>
   </database>
