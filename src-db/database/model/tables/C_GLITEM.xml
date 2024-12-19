@@ -61,7 +61,7 @@
         <default/>
         <onCreateDefault/>
       </column>
-      <column name="SEARCHKEY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+      <column name="SEARCHKEY" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
         <onCreateDefault/>
       </column>
@@ -80,6 +80,11 @@
       <foreign-key foreignTable="C_WITHHOLDING" name="C_GLITEM_C_WITHHOLDING">
         <reference local="C_WITHHOLDING_ID" foreign="C_WITHHOLDING_ID"/>
       </foreign-key>
+      <unique name="C_GLITEM_SEARCHKEY">
+        <unique-column name="SEARCHKEY"/>
+        <unique-column name="AD_ORG_ID"/>
+        <unique-column name="AD_CLIENT_ID"/>
+      </unique>
       <check name="C_GLITEM_FINCAT_CHECK"><![CDATA[ENABLEINFININVOICES = 'Y' AND C_TAXCATEGORY_ID IS NOT NULL OR ENABLEINFININVOICES = 'N' AND C_TAXCATEGORY_ID IS NULL]]></check>
       <check name="C_GLITEM_FININVOICES_CHECK"><![CDATA[ENABLEINFININVOICES IN ('Y', 'N')]]></check>
       <check name="C_GLITEM_ISACTIVE_CHECK"><![CDATA[ISACTIVE IN ('Y', 'N')]]></check>
