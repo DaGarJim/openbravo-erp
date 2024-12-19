@@ -48,6 +48,11 @@ public class UpdateGLItemSearchKey extends ModuleScript {
   }
   
   @Override
+  protected boolean executeOnInstall() {
+    return false;
+  }
+  
+  @Override
   protected ModuleScriptExecutionLimits getModuleScriptExecutionLimits() {
     return new ModuleScriptExecutionLimits("0", null, new OpenbravoVersion(3, 0, 245900));
   }
