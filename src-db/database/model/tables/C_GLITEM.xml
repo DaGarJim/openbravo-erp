@@ -63,7 +63,7 @@
       </column>
       <column name="VALUE" primaryKey="false" required="true" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
-        <onCreateDefault/>
+        <onCreateDefault><![CDATA[CASE WHEN NOT EXISTS (SELECT 1 FROM C_GLITEM AS SUB WHERE SUB.NAME = C_GLITEM.NAME AND SUB.AD_ORG_ID = C_GLITEM.AD_ORG_ID AND SUB.C_GLITEM_ID <> C_GLITEM.C_GLITEM_ID) THEN C_GLITEM.NAME ELSE C_GLITEM.C_GLITEM_ID END]]></onCreateDefault>
       </column>
       <foreign-key foreignTable="AD_CLIENT" name="C_GLITEM_AD_CLIENT">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
