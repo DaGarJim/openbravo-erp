@@ -31,7 +31,7 @@
     <Sql>
      <![CDATA[
 		UPDATE c_glitem
-		SET searchkey = 
+		SET value = 
 		    CASE 
 		        WHEN NOT EXISTS ( 
 		            SELECT 1 
@@ -42,7 +42,7 @@
 		        ) THEN c_glitem.name
 		        ELSE c_glitem.c_glitem_id
 		    END
-		WHERE searchkey IS NULL;
+		WHERE value IS NULL;
       ]]>
     </Sql>
   </SqlMethod>

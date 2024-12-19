@@ -12,7 +12,7 @@
   <NAME><![CDATA[Sueldos y salarios]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[Sueldos y salarios]]></SEARCHKEY>
+  <VALUE><![CDATA[Sueldos y salarios]]></VALUE>
 </C_GLITEM>
 
 <C_GLITEM>
@@ -27,7 +27,7 @@
   <NAME><![CDATA[Funds transfer]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[Funds transfer]]></SEARCHKEY>
+  <VALUE><![CDATA[Funds transfer]]></VALUE>
 </C_GLITEM>
 
 <C_GLITEM>
@@ -42,7 +42,7 @@
   <NAME><![CDATA[International funds transfer]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[International funds transfer]]></SEARCHKEY>
+  <VALUE><![CDATA[International funds transfer]]></VALUE>
 </C_GLITEM>
 
 <C_GLITEM>
@@ -57,7 +57,7 @@
   <NAME><![CDATA[Capital social]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[Capital social]]></SEARCHKEY>
+  <VALUE><![CDATA[Capital social]]></VALUE>
 </C_GLITEM>
 
 <C_GLITEM>
@@ -72,7 +72,7 @@
   <NAME><![CDATA[Company Capital]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[Company Capital]]></SEARCHKEY>
+  <VALUE><![CDATA[Company Capital]]></VALUE>
 </C_GLITEM>
 
 <C_GLITEM>
@@ -87,7 +87,7 @@
   <NAME><![CDATA[Salaries]]></NAME>
   <ENABLEINCASH><![CDATA[N]]></ENABLEINCASH>
   <ENABLEINFININVOICES><![CDATA[N]]></ENABLEINFININVOICES>
-  <SEARCHKEY><![CDATA[Salaries]]></SEARCHKEY>
+  <VALUE><![CDATA[Salaries]]></VALUE>
 </C_GLITEM>
 
 </data>
