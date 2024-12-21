@@ -214,7 +214,6 @@ Under the LGPL license (included as LGPL-2.1.txt in this folder)
 # shrinkwrap-descriptors-spi-2.0.0.jar
 # shrinkwrap-impl-base-1.2.6.jar
 # shrinkwrap-spi-1.2.6.jar
-# validation-api-1.0.0.GA.jar
 # httpcore-4.4.9.jar
 # httpclient-4.5.5.jar
 # httpmime-4.5.5.jar
@@ -235,19 +234,20 @@ Under the Apache 2.0 license (included as Apache_license-2.0.txt in this folder)
 note that Byte Buddy depends on the ASM library which is distributed under a BSD license (included as ASM_BSD_license.txt in this folder)
 
 # jboss-transaction-api_1.2_spec-1.1.1.Final.jar
-Under the CDDL license version 1.0 (license available at https://spdx.org/licenses/CDDL-1.0.html 
-or in the file CDDL-1.0.txt in this folder)
+Under the (CDDL license version 1.0) OR (GPL 2.0 WITH Classpath Exception)
+Available: https://spdx.org/licenses/CDDL-1.0.html OR https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html or combined in the file CDDL-1.0.txt in this folder
 
 # istack-commons-runtime-3.0.7.jar
 # javax.activation-1.2.0.jar
 # jaxb-api-2.3.1.jar
 # jaxb-runtime-2.3.1.jar
 # javax.mail-1.6.1.jar
+# javax.websocket-api-1.1.jar
 # jboss-el-api_3.0_spec-1.0.13.Final.jar
 # stax-ex-1.8.jar
 # txw2-2.3.1.jar
-Under the CDDL license version 1.1 (license available at https://spdx.org/licenses/CDDL-1.1.html 
-or in the file CDDL-1.1.txt in this folder)
+Under the (CDDL license version 1.1) OR (GPL 2.0 WITH Classpath Exception)
+Available: license available at https://spdx.org/licenses/CDDL-1.1.html OR https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html or combined in the CDDL-1.1.txt in this folder
 
 # java-jwt-4.4.0.jar
 Under the MIT license (available at https://opensource.org/license/mit/)
