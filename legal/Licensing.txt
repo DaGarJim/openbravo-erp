@@ -79,9 +79,8 @@ http://www.eclipse.org/org/documents/edl-v10.php)
 Dual license EPL 2.0 and GPL2 w/ CPE. Using the Eclipse Public License v 2.0,
 available at https://www.eclipse.org/legal/epl-2.0/ and in the EPL-2.0.txt in this folder
 
-# nekohtml.jar (CyberNeko HTML Parser)
-Under the CyberNeko Software License, Version 1.0 (license available at
-http://people.apache.org/~andyc/neko/doc/html/
+# nekohtml.jar (CyberNeko HTML Parser version 0.9.5)
+Under the CyberNeko Software License, Version 1.0 (license included as Neko_license.txt in this folder)
 
 # ant-1.9.2.jar
 # ant-launcher-1.9.2.jar
@@ -118,12 +117,14 @@ http://www.apache.org/licenses/LICENSE-2.0
 # postgresql-42.7.3.jar
 Under the BSD license, also available at https://jdbc.postgresql.org/about/license.html
 
-# Dojo Foundation javascripts in web/js/dojo/
-All files under the Academic Free License 2.1 (license available at
-http://opensource.org/licenses/afl-2.1.php)
+# Dojo Foundation javascripts in web/js/dojo/ and web/js/dojotoolkit/
+Under either modified BSD license of the Academic Free License 2.1
+Available in the file ../web/js/dojo/LICENSE or at
+https://github.com/dojo/dojo/blob/master/LICENSE
 
-# Dynarch DHTML/Javascript calendar at web/js/jscalendar (Copyright Mihai
-  Bazon, 2002, 2003 - http://dynarch.com/mishoo/)
+# Dynarch DHTML/Javascript calendar at web/js/jscalendar
+Version: 1.0 under LGPL
+(Copyright Mihai  Bazon, 2002, 2003 - http://dynarch.com/mishoo/)
 
 # itext-2.1.7.js8.jar
 Under the terms of the MPL 1.1 license, available at https://www.mozilla.org/en-US/MPL/1.1/
@@ -147,7 +148,7 @@ Under the Apache 2.0 license (included as Apache_poi_license.txt in this folder)
 All files under the LGPL 2.1 (available at www.gnu.org/licenses/lgpl.html)
 
 # antlr-2.7.7.jar
-Under the ANTLR license (available at http://www.antlr.org/license.html)
+Under the ANTLR license (available at http://www.antlr.org/license.html and included as ANTLR-3.txt in this folder)
 
 # junit-4.13.2.jar
 Under the Eclipse Public License - v 1.0 (available at https://www.eclipse.org/legal/epl-v10.html)
@@ -167,7 +168,7 @@ Under the BSD 3-Clause license (available at http://opensource.org/licenses/BSD-
 
 # rhino-1.7.13.jar
 # rhino-engine-1.7.13.jar
-Under MPL/GPL License (available at https://developer.mozilla.org/en/Rhino_License)
+Under MPL 2.0 License (available at https://github.com/mozilla/rhino/blob/master/LICENSE.txt)
 
 # slf4j-api-1.7.25.jar
 Under MIT license. (available at http://www.slf4j.org/license.html)
