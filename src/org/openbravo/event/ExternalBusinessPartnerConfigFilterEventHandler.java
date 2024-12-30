@@ -32,6 +32,8 @@ import org.openbravo.client.kernel.event.EntityPersistenceEventObserver;
 import org.openbravo.client.kernel.event.EntityUpdateEvent;
 import org.openbravo.dal.service.OBCriteria;
 import org.openbravo.dal.service.OBDal;
+import org.openbravo.erpCommon.utility.OBMessageUtils;
+import org.openbravo.financial.paymentreport.erpCommon.ad_reports.PaymentReportDao;
 import org.openbravo.model.externalbpartner.ExternalBusinessPartnerConfig;
 import org.openbravo.model.externalbpartner.ExternalBusinessPartnerConfigFilter;
 
@@ -49,18 +51,22 @@ public class ExternalBusinessPartnerConfigFilterEventHandler
     if (!isValidEvent(event)) {
       return;
     }
+
     checkScanFilterIsUnique(event);
     checkTranslatableFields(event);
     checkAdvancedFilterOrMainFilterAreChecked(event);
+    checkCRMFilterBusinessPropertyUniqueness(event);
   }
 
   public void onUpdate(@Observes EntityUpdateEvent event) {
     if (!isValidEvent(event)) {
       return;
     }
+
     checkScanFilterIsUnique(event);
     checkTranslatableFields(event);
     checkAdvancedFilterOrMainFilterAreChecked(event);
+    checkCRMFilterBusinessPropertyUniqueness(event);
   }
 
   private void checkScanFilterIsUnique(final EntityPersistenceEvent event) {
@@ -161,6 +167,38 @@ public class ExternalBusinessPartnerConfigFilterEventHandler
         .getTargetInstance();
     if (filter.isAdvancedFilter() && filter.isMainFilter()) {
       throw new OBException("@CRMFilterCannotBeAdvancedAndMain@");
+    }
+  }
+
+  private void checkCRMFilterBusinessPropertyUniqueness(EntityPersistenceEvent event) {
+    final ExternalBusinessPartnerConfigFilter filter = (ExternalBusinessPartnerConfigFilter) event
+        .getTargetInstance();
+
+    if (!filter.isActive()) {
+      return;
+    }
+
+    String filterBusinessProperty = filter.getCrmFiltersBusinessProperty();
+
+    final OBCriteria<?> criteria = OBDal.getInstance()
+        .createCriteria(event.getTargetInstance().getClass());
+
+    criteria.add(Restrictions.eq(
+        ExternalBusinessPartnerConfigFilter.PROPERTY_EXTERNALBUSINESSPARTNERINTEGRATIONCONFIGURATION,
+        filter.getExternalBusinessPartnerIntegrationConfiguration()));
+    criteria.add(
+        Restrictions.eq(ExternalBusinessPartnerConfigFilter.PROPERTY_CRMFILTERSBUSINESSPROPERTY,
+            filterBusinessProperty));
+    criteria.add(Restrictions.eq(ExternalBusinessPartnerConfigFilter.PROPERTY_ACTIVE, true));
+    criteria.add(Restrictions.ne(ExternalBusinessPartnerConfigFilter.PROPERTY_ID, event.getId()));
+
+    criteria.setMaxResults(1);
+
+    if (criteria.uniqueResult() != null) {
+      String propertyTranslated = PaymentReportDao.translateRefList(filterBusinessProperty);
+      String msg = OBMessageUtils.getI18NMessage("DuplicatedCRMBusinessProperty",
+          new String[] { propertyTranslated });
+      throw new OBException(msg);
     }
   }
 }

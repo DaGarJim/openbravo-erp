@@ -121,6 +121,10 @@
         <default><![CDATA[Text]]></default>
         <onCreateDefault><![CDATA[Text]]></onCreateDefault>
       </column>
+      <column name="CRMFILTERSBUSINESSPROPERTY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
+        <default/>
+        <onCreateDefault/>
+      </column>
       <foreign-key foreignTable="AD_CLIENT" name="C_EXTBPCONFFIL_CLIENT_FK">
         <reference local="AD_CLIENT_ID" foreign="AD_CLIENT_ID"/>
       </foreign-key>
