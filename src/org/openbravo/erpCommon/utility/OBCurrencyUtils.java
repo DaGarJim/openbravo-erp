@@ -11,18 +11,23 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2015 Openbravo SLU
+ * All portions are Copyright (C) 2015-2024 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  ************************************************************************
  */
 package org.openbravo.erpCommon.utility;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
+import org.openbravo.model.common.currency.ConversionRate;
+import org.openbravo.model.common.currency.Currency;
 import org.openbravo.model.common.enterprise.Organization;
 import org.openbravo.service.db.DalConnectionProvider;
 
@@ -79,4 +84,28 @@ public class OBCurrencyUtils {
 
     return null;
   }
+
+  /**
+   * Returns the boolean true/false for the given from and to currency.
+   *
+   * If the fromCurrency has the conversion defined for the toCurrency it returns true, else false
+   *
+   * @param fromCurrency
+   *          the currency whose conversion list need to be checked
+   * @param toCurrency
+   *          the currency to check in the fromCurrency conversion list whether its present
+   *
+   * @return Boolean True/False for the given from and to currency.
+   */
+  public static boolean isConversionPresent(Currency fromCurrency, Currency toCurrency) {
+    List<ConversionRate> conversionRateList = fromCurrency.getCurrencyConversionRateList();
+    List<ConversionRate> activeConversions = conversionRateList.stream()
+        .filter(ConversionRate::isActive)
+        .collect(Collectors.toList());
+
+    return activeConversions.stream()
+        .anyMatch(
+            conversionRate -> conversionRate.getToCurrency().getId().equals(toCurrency.getId()));
+  }
+
 }
