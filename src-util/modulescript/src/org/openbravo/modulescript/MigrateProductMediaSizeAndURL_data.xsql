@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/*
+ ************************************************************************************
+ * Copyright (C) 2025 Openbravo S.L.U.
+ * Licensed under the Openbravo Commercial License version 1.0
+ * You may obtain a copy of the License at http://www.openbravo.com/legal/obcl.html
+ * or in the legal folder of this module distribution.
+ ************************************************************************************
+ */
+-->
+<SqlClass name="MigrateProductMediaSizeAndURLData" package="org.openbravo.modulescript">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="dummy" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+          SELECT 1 AS dummy FROM DUAL
+        ]]>
+      </Sql>
+  </SqlMethod>
+  <SqlMethod name="migrateProductMediaSizeAndURLData" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+          INSERT INTO m_product_media_size
+          SELECT get_uuid(), pm.ad_client_id, pm.ad_org_id, 'Y', NOW(), '100', NOW(), '100', pm.m_product_media_id, pm.url, pm.media_size 
+          FROM m_product_media pm 
+          WHERE pm.url IS NOT NULL AND pm.media_size IS NOT NULL 
+          AND NOT EXISTS (SELECT 1 FROM m_product_media_size pms 
+          				  WHERE pms.m_product_media_id = pm.m_product_media_id) 
+        ]]>
+      </Sql>
+  </SqlMethod>
+</SqlClass>

@@ -11,7 +11,7 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2024 Openbravo SLU
+ * All portions are Copyright (C) 2024-2025 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,7 +19,6 @@
 package org.openbravo.modulescript;
 
 import java.sql.PreparedStatement;
-
 import org.openbravo.database.ConnectionProvider;
 
 /**
@@ -35,22 +34,7 @@ public class MigrateProductMediaSizeAndURL extends ModuleScript {
   public void execute() {
     try {
       ConnectionProvider cp = getConnectionProvider();
-      PreparedStatement ps = null;
-
-      StringBuilder sqlStr = new StringBuilder();
-      sqlStr.append("INSERT INTO m_product_media_size ");
-      sqlStr.append("SELECT ");
-      sqlStr.append("  get_uuid(), pm.ad_client_id, pm.ad_org_id, 'Y', NOW(), '100', NOW(), '100', ");
-      sqlStr.append("  pm.m_product_media_id, pm.url, pm.media_size ");
-      sqlStr.append("FROM m_product_media pm ");
-      sqlStr.append("WHERE pm.url IS NOT NULL AND pm.media_size IS NOT NULL ");
-      sqlStr.append("AND NOT EXISTS (SELECT 1 FROM m_product_media_size pms ");
-      sqlStr.append("                WHERE pms.m_product_media_id = pm.m_product_media_id)");
-
-      ps = cp.getPreparedStatement(sqlStr.toString());
-      ps.executeUpdate();
-      ps.close();
-      
+      MigrateProductMediaSizeAndURLData.migrateProductMediaSizeAndURLData(cp);
     } catch (Exception e) {
       handleError(e);
     }
