@@ -18,7 +18,6 @@
  */
 package org.openbravo.modulescript;
 
-import java.sql.PreparedStatement;
 import org.openbravo.database.ConnectionProvider;
 
 /**
