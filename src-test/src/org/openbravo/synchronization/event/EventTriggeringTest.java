@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2022 Openbravo SLU 
+ * All portions are Copyright (C) 2022-2025 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,6 +19,7 @@
 package org.openbravo.synchronization.event;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Collections;
@@ -31,9 +32,11 @@ import org.openbravo.base.weld.test.WeldBaseTest;
 
 /**
  * Integration tests for the {@link SynchronizationEvent} API. It uses a testing
- * {@link EventTrigger} to check if the event has been handled.
+ * {@link EventTrigger} to check if the event has been handled. There are tests to also cover the
+ * {@link EventContextFilter} infrastructure.
  * 
  * @see TestEventTrigger
+ * @see TestEventContextFilter
  */
 public class EventTriggeringTest extends WeldBaseTest {
 
@@ -46,6 +49,7 @@ public class EventTriggeringTest extends WeldBaseTest {
   @After
   public void cleanUp() {
     WeldUtils.getInstanceFromStaticBeanManager(TestEventTrigger.class).reset();
+    SynchronizationEvent.getInstance().clearCurrentEventContext();
   }
 
   @Test
@@ -85,5 +89,45 @@ public class EventTriggeringTest extends WeldBaseTest {
   public void hasDefaultPriority() {
     assertThat(WeldUtils.getInstanceFromStaticBeanManager(TestEventTrigger.class).getPriority(),
         equalTo(DEFAULT_PRIORITY));
+  }
+
+  @Test
+  public void checkEventTriggeringWithTheEventContextCleared() {
+    SynchronizationEvent.getInstance().clearCurrentEventContext();
+
+    assertIsCurrentEventContext(null);
+    assertIsEventTriggeringAllowed(null, false);
+    assertIsEventTriggeringAllowed("UNKNOWN_FILTER", false);
+    assertIsEventTriggeringAllowed("ALL", true);
+    assertIsEventTriggeringAllowed(TestEventContextFilter.FILTER_NAME, false);
+  }
+
+  @Test
+  public void checkEventTriggeringWithTheEventContextSet() {
+    setAndAssertCurrentEventContext(TestEventContextFilter.CONTEXT_NAME);
+
+    assertIsEventTriggeringAllowed(null, false);
+    assertIsEventTriggeringAllowed("UNKNOWN_FILTER", false);
+    assertIsEventTriggeringAllowed("ALL", true);
+    assertIsEventTriggeringAllowed(TestEventContextFilter.FILTER_NAME, true);
+  }
+
+  private void setAndAssertCurrentEventContext(String eventContext) {
+    SynchronizationEvent.getInstance().setCurrentEventContext(eventContext);
+    assertIsCurrentEventContext(eventContext);
+  }
+
+  private void assertIsCurrentEventContext(String eventContext) {
+    if (eventContext == null) {
+      assertThat(SynchronizationEvent.getInstance().getCurrentEventContext(), nullValue());
+    } else {
+      assertThat(SynchronizationEvent.getInstance().isCurrentEventContext(eventContext),
+          equalTo(true));
+    }
+  }
+
+  private void assertIsEventTriggeringAllowed(String eventContextFilter, boolean isAllowed) {
+    assertThat(SynchronizationEvent.getInstance().isEventTriggeringAllowed(eventContextFilter),
+        equalTo(isAllowed));
   }
 }
