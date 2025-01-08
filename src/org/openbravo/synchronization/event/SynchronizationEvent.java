@@ -145,11 +145,13 @@ public class SynchronizationEvent {
    *          event payload.
    */
   public void triggerEvent(String event, String recordId) {
-    log.trace("Triggering event {} for record ID {}", event, recordId);
+    log.trace("Triggering event {} for record ID {} under context {}", event, recordId,
+        getCurrentEventContext());
     Optional<EventTrigger> optTrigger = getEventTrigger(event);
     if (optTrigger.isPresent()) {
       optTrigger.get().triggerEvent(event, recordId);
-      log.trace("Triggered event {} for record ID {}", event, recordId);
+      log.trace("Triggered event {} for record ID {} under context {}", event, recordId,
+          getCurrentEventContext());
     } else {
       log.trace("No trigger found for event {}, record ID {}", event, recordId);
     }
@@ -165,11 +167,13 @@ public class SynchronizationEvent {
    *          The keys are the parameter name and the map values are the values for each parameter.
    */
   public void triggerEvent(String event, Map<String, Object> params) {
-    log.trace("Triggering multiple record event {} with params {}", event, params);
+    log.trace("Triggering multiple record event {} with params {} under context {}", event, params,
+        getCurrentEventContext());
     Optional<EventTrigger> optTrigger = getEventTrigger(event);
     if (optTrigger.isPresent()) {
       optTrigger.get().triggerEvent(event, params);
-      log.trace("Triggered multiple record event {} with params {}", event, params);
+      log.trace("Triggered multiple record event {} with params {} under context {}", event, params,
+          getCurrentEventContext());
     } else {
       log.trace("No trigger found for multiple record event {}, params {}", event, params);
     }
