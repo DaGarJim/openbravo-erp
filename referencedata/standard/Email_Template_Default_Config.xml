@@ -3,21 +3,21 @@
     <id>D894EFE020E640AC99CE16C711D10088</id>
     <active>true</active>
     <pocDocumentType xsi:nil="true"/>
-    <subject>Openbravo Orisha - Forgotten Password</subject>
+    <subject>Openbravo - Orisha Commerce - Forgotten Password</subject>
     <body>&lt;#if user.firstName??&gt;
 Hello ${user.firstName}
 &lt;#else&gt;
 Hello ${user.username}
 &lt;/#if&gt;
 
-We've received a request to regenerate your password for your Openbravo - Orisha Retail Chain Account.
+We've received a request to reset your password for your Openbravo - Orisha Commerce Account.
 
 Click on the link below to create your new password.
 ${change_password_url}
 
-If you have not been requesting a new password, please contact your IT system to alert them about this request.
+If you have not been requesting a new password, please contact your IT team to alert them about this request.
 
-Remember that the link will be valid for ${reset_password_timeout} minutes.
+This link will be valid for ${reset_password_timeout} minutes.
 
 Best Regards</body>
     <default>false</default>

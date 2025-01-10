@@ -322,5 +322,6 @@
       <check name="AD_CLIENTINFO_EXTBPENABL_CH"><![CDATA[C_EXTBP_ENABLED IN ('Y', 'N')]]></check>
       <check name="AD_CLIENTINFO_ISACTIVE_CHK"><![CDATA[ISACTIVE IN ('Y', 'N')]]></check>
       <check name="AD_CLIENTINFO_ISDISCOUNTLI_CHK"><![CDATA[ISDISCOUNTLINEAMT IN ('Y', 'N')]]></check>
+      <check name="AD_CLIENTINFO_RSTPWD_CH"><![CDATA[ENABLE_RESET_PASSWORD_BY_EMAIL IN ('Y', 'N')]]></check>
     </table>
   </database>

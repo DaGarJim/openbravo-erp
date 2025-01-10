@@ -57,5 +57,7 @@
       <unique name="AD_USER_PWD_RESET_TOKEN_UN">
         <unique-column name="USERTOKEN"/>
       </unique>
+      <check name="AD_USR_PWD_RST_TK_ISACTIVE_CH"><![CDATA[ISACTIVE IN ('Y', 'N')]]></check>
+      <check name="AD_USR_PWD_RST_TK_REDEEMED_CH"><![CDATA[REDEEMED IN ('Y', 'N')]]></check>
     </table>
   </database>

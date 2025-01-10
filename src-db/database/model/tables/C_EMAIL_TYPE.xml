@@ -61,5 +61,6 @@
       <unique name="C_EMAIL_TYPE_VAL_UN">
         <unique-column name="VALUE"/>
       </unique>
+      <check name="C_EMAIL_TYPE_ISACTIVE_CH"><![CDATA[ISACTIVE IN ('Y', 'N')]]></check>
     </table>
   </database>

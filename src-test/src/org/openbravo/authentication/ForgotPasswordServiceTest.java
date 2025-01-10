@@ -11,7 +11,7 @@
  * under the License.
  * The Original Code is Openbravo ERP.
  * The Initial Developer of the Original Code is Openbravo SLU
- * All portions are Copyright (C) 2024 Openbravo SLU
+ * All portions are Copyright (C) 2024 - 2025 Openbravo SLU
  * All Rights Reserved.
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -100,7 +100,7 @@ public class ForgotPasswordServiceTest extends WeldBaseTest {
       testUser.setUsername(TEST_USER_NAME);
       testUser.setPassword(TEST_USER_PWD);
       testUser.setActive(true);
-      testUser.setEmail("test@test.com");
+      testUser.setEmail("test@example.org");
       testUser.setLocked(false);
       testUser.setSsoonly(false);
       testUser.setDefaultLanguage(language);
@@ -121,10 +121,10 @@ public class ForgotPasswordServiceTest extends WeldBaseTest {
       conf.setOrganization(org);
       conf.setSmtpServer("smtp.gmail.com");
       conf.setSMTPAuthentification(true);
-      conf.setSmtpServerAccount("smtp@accounttestOB.com");
+      conf.setSmtpServerAccount("smtp@example.org");
       conf.setSmtpConnectionSecurity("SSL");
       conf.setSmtpPort((long) 465);
-      conf.setSmtpServerSenderAddress("sender@test.com");
+      conf.setSmtpServerSenderAddress("sender@example.org");
 
       EmailTemplate template = OBProvider.getInstance().get(EmailTemplate.class);
       template.setClient(client);
@@ -227,7 +227,7 @@ public class ForgotPasswordServiceTest extends WeldBaseTest {
       OBDal.getInstance()
           .getSession()
           .createQuery(hql)
-          .setParameter("testAccount", "smtp@accounttestOB.com")
+          .setParameter("testAccount", "smtp@example.org")
           .executeUpdate();
 
     } finally {
