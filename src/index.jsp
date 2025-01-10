@@ -32,7 +32,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2011-2022 Openbravo SLU
+ * All portions are Copyright (C) 2011-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -70,8 +70,12 @@ try {
     if (!ActivationKey.consumesConcurrentUser(currentSessionType) && !"CUR".equals(currentSessionType)) {
       // session was created not counting concurrent users, now switching to backend so they
       // should be counted
-      dbSession.setLoginStatus(LoginHandler.SUCCESS_SESSION_STANDARD);
-      OBDal.getInstance().flush();
+      
+      Role role = OBContext.getOBContext().getRole();
+      if(role !=null && !role.isRestrictbackend()){
+        dbSession.setLoginStatus(LoginHandler.SUCCESS_SESSION_STANDARD);
+        OBDal.getInstance().flush();
+      }
 
       if (ActivationKey.getInstance().checkOPSLimitations(sessionId) == LicenseRestriction.NUMBER_OF_CONCURRENT_USERS_REACHED) {
         dbSession.setSessionActive(false);
