@@ -118,8 +118,8 @@
         <onCreateDefault/>
       </column>
       <column name="TYPE" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
-        <default><![CDATA[Text]]></default>
-        <onCreateDefault><![CDATA[Text]]></onCreateDefault>
+        <default/>
+        <onCreateDefault/>
       </column>
       <column name="CRMFILTERSBUSINESSPROPERTY" primaryKey="false" required="false" type="VARCHAR" size="60" autoIncrement="false">
         <default/>
