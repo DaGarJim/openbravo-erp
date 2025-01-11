@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2018 Openbravo SLU 
+ * All portions are Copyright (C) 2018-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,44 +19,45 @@
 
 package org.openbravo.test.views;
 
-import static org.hibernate.criterion.Restrictions.in;
-import static org.hibernate.criterion.Restrictions.not;
-
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
+import org.junit.After;
+import org.junit.Before;
 import org.openbravo.client.application.GCSystem;
 import org.openbravo.client.application.GCTab;
 import org.openbravo.client.application.window.StandardWindowComponent;
-import org.openbravo.dal.core.OBContext;
-import org.openbravo.dal.service.OBCriteria;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.model.ad.ui.Tab;
 import org.openbravo.test.base.OBBaseTest;
 
+/**
+ * It can be extended by the test classes that deal with grid configurations
+ */
 public class GridConfigurationTest extends OBBaseTest {
 
-  /**
-   * Standard Grid Configuration IDs
-   */
-  private static final List<String> CORE_DEFAULT_GRID_CONFIGS = Arrays.asList(
-      "4701BC23719C41FAA422305FCDBBAF85", "FDA9AFD8D7504E18A220EFC01F5D28D3",
-      "1AD989605ACA4F5FB6C11B2E7AC88867");
+  @Before
+  public void init() {
+    disableCurrentGridConfigurations();
+  }
+
+  @After
+  public void cleanUp() {
+    rollback();
+  }
 
   /**
-   * @return the current number of grid configurations defined in the system.
+   * Disables the existing grid configurations
    */
-  protected static int getNumberOfGridConfigurations() {
-    OBContext.setAdminMode(false);
-    try {
-      OBCriteria<GCSystem> systemGridConfig = OBDal.getInstance().createCriteria(GCSystem.class);
-      OBCriteria<GCTab> tabGridConfig = OBDal.getInstance().createCriteria(GCTab.class);
-      tabGridConfig.add(not(in(GCTab.PROPERTY_ID, CORE_DEFAULT_GRID_CONFIGS)));
-      return systemGridConfig.count() + tabGridConfig.count();
-    } finally {
-      OBContext.restorePreviousMode();
-    }
+  private void disableCurrentGridConfigurations() {
+    OBDal.getInstance()
+        .getSession()
+        .createQuery("update OBUIAPP_GC_System set active = false")
+        .executeUpdate();
+    OBDal.getInstance()
+        .getSession()
+        .createQuery("update OBUIAPP_GC_Tab set active = false")
+        .executeUpdate();
+    OBDal.getInstance().flush();
   }
 
   protected static Optional<GCSystem> getSystemGridConfig() {

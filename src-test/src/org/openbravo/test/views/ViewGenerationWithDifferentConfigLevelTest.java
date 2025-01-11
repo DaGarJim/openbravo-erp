@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2015-2018 Openbravo SLU 
+ * All portions are Copyright (C) 2015-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,13 +19,10 @@
 
 package org.openbravo.test.views;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assume.assumeThat;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.openbravo.base.provider.OBProvider;
 import org.openbravo.client.application.GCField;
@@ -59,15 +56,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
   private static final long SEQUENCE = 10;
 
   /**
-   * Execute these test cases only if there is no custom grid config as it could make unstable
-   * results
-   */
-  @Before
-  public void shouldExecuteOnlyIfThereIsNoGridConfig() {
-    assumeThat("Number of custom grid configs", getNumberOfGridConfigurations(), is(0));
-  }
-
-  /**
    * Having only grid configuration in System level. In the configuration, the "by default allow
    * filtering" checkbox is checked, so, the expression "canFilter: true" must be found.
    */
@@ -91,7 +79,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
       assertThat("Grid configuration at system level with filtering enabled:",
           systemConfig.toString(), containsString(CAN_FILTER_TRUE));
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -124,7 +111,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
       assertThat("Grid configuration at tab level with filtering disabled:", tabConfig.toString(),
           containsString(CAN_FILTER_FALSE));
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -179,7 +165,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
           "Grid configuration at field level with sorting diabled for the business partner category field, but enabled at system level for any other field:",
           systemConfig.toString(), containsString(CAN_SORT_TRUE));
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -220,7 +205,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
           fieldConfig.toString(), containsString(CAN_SORT_TRUE));
 
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -282,7 +266,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
           systemConfig.toString(), containsString(CAN_SORT_TRUE));
 
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -334,7 +317,6 @@ public class ViewGenerationWithDifferentConfigLevelTest extends GridConfiguratio
           "Grid configuration at field level with sorting enabled for the business partner category field:",
           fieldConfig.toString(), containsString(CAN_SORT_TRUE));
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }

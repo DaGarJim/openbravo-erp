@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2015-2018 Openbravo SLU 
+ * All portions are Copyright (C) 2015-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,13 +19,10 @@
 
 package org.openbravo.test.views;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assume.assumeThat;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.openbravo.base.provider.OBProvider;
 import org.openbravo.client.application.GCTab;
@@ -54,15 +51,6 @@ public class GCSequenceNumberTests extends GridConfigurationTest {
   private static final String NO = "N";
   private static final long LOW_SEQUENCE_NUMBER = 10;
   private static final long HIGH_SEQUENCE_NUMBER = 20;
-
-  /**
-   * Execute these test cases only if there is no custom grid config as it could make unstable
-   * results
-   */
-  @Before
-  public void shouldExecuteOnlyIfThereIsNoGridConfig() {
-    assumeThat("Number of custom grid configs", getNumberOfGridConfigurations(), is(0));
-  }
 
   /**
    * If different sequence number is set for the same tab, the expected behavior is that the
@@ -103,7 +91,6 @@ public class GCSequenceNumberTests extends GridConfigurationTest {
           tabConfig.toString(), containsString(CAN_FILTER_TRUE));
 
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -158,7 +145,6 @@ public class GCSequenceNumberTests extends GridConfigurationTest {
           productTabConfig.toString(), containsString(CAN_FILTER_FALSE));
 
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }
@@ -213,7 +199,6 @@ public class GCSequenceNumberTests extends GridConfigurationTest {
           productTabConfig.toString(), containsString(CAN_FILTER_FALSE));
 
     } finally {
-      OBDal.getInstance().rollbackAndClose();
       OBContext.restorePreviousMode();
     }
   }

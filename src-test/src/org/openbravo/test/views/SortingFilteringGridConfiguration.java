@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2016-2018 Openbravo SLU 
+ * All portions are Copyright (C) 2016-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -19,18 +19,15 @@
 
 package org.openbravo.test.views;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assume.assumeThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.codehaus.jettison.json.JSONObject;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -47,6 +44,7 @@ import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.ad.ui.Field;
 import org.openbravo.model.ad.ui.Tab;
 import org.openbravo.model.common.enterprise.Organization;
+import org.openbravo.test.base.TestConstants;
 
 /**
  * Test cases to check if the correct behavior with different combinations of sorting and filtering
@@ -56,43 +54,19 @@ import org.openbravo.model.common.enterprise.Organization;
 @RunWith(Parameterized.class)
 public class SortingFilteringGridConfiguration extends GridConfigurationTest {
 
-  private static Boolean coreWasInDevelopment;
-
-  /**
-   * Execute these test cases only if there is no custom grid config as it could make unstable
-   * results
-   */
-  @BeforeClass
-  public static void shouldExecuteOnlyIfThereIsNoGridConfig() {
-    assumeThat("Number of custom grid configs", getNumberOfGridConfigurations(), is(0));
-
-    OBContext.setAdminMode(true);
-    try {
-      Module core = OBDal.getInstance().get(Module.class, "0");
-      coreWasInDevelopment = core.isInDevelopment();
-      if (!coreWasInDevelopment) {
-        core.setInDevelopment(true);
-        OBDal.getInstance().commitAndClose();
-      }
-    } finally {
-      OBContext.restorePreviousMode();
-    }
+  @Before
+  public void prepareModule() {
+    setCoreInDevelopment(true);
   }
 
-  @AfterClass
-  public static void cleanUp() {
-    if (getNumberOfGridConfigurations() > 0 || Boolean.TRUE.equals(coreWasInDevelopment)) {
-      return;
-    }
-    OBContext.setAdminMode(true);
+  private void setCoreInDevelopment(boolean isInDevelopment) {
+    OBContext.setAdminMode(false);
     try {
-      Module core = OBDal.getInstance().get(Module.class, "0");
-      core.setInDevelopment(coreWasInDevelopment);
-      OBDal.getInstance().commitAndClose();
+      Module core = OBDal.getInstance().get(Module.class, TestConstants.Modules.ID_CORE);
+      core.setInDevelopment(isInDevelopment);
     } finally {
       OBContext.restorePreviousMode();
     }
-
   }
 
   private enum ColumnLevel {
@@ -270,7 +244,6 @@ public class SortingFilteringGridConfiguration extends GridConfigurationTest {
             getTabGridConfig(field.getTab()));
         return fieldConfig.toString();
       } finally {
-        OBDal.getInstance().rollbackAndClose();
         OBContext.restorePreviousMode();
       }
     }
