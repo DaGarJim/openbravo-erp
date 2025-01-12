@@ -25,7 +25,7 @@ import org.openbravo.modulescript.OpenbravoVersion;
 
 public class UpdateCRMBPFilterReferenceConfiguration extends ModuleScript {
 
-  // This module script has been created due to issue 54068
+  // This module script has been created due to rm-20031
   @Override
   public void execute() {
     try {
