@@ -178,7 +178,7 @@ public abstract class ReferencedInventoryProcessor {
    */
   public InternalMovement createAndProcessGoodsMovement() throws Exception {
     try {
-      OBContext.setAdminMode(true);
+      OBContext.setAdminMode(false);
       final InternalMovement goodsMovementHeader = ReferencedInventoryUtil
           .createAndSaveGoodsMovementHeader(getReferencedInventoryOrganization(),
               getFixedInternalMovementName());
