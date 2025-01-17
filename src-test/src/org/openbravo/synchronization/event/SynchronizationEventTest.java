@@ -21,8 +21,6 @@ package org.openbravo.synchronization.event;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,7 +37,6 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.openbravo.base.exception.OBException;
 import org.openbravo.test.base.MockableBaseTest;
 
 /**
@@ -48,7 +45,6 @@ import org.openbravo.test.base.MockableBaseTest;
 public class SynchronizationEventTest extends MockableBaseTest {
 
   private static final String CONTEXT_NAME = "TEST_CONTEXT";
-  private static final String CONTEXT_FILTER_NAME = "TEST_FILTER";
   private static final String HANDLED_EVENT = "A";
   private static final String UNHANDLED_EVENT = "B";
   private static final String RECORD_ID = "1";
@@ -56,13 +52,7 @@ public class SynchronizationEventTest extends MockableBaseTest {
       "2022-04-26");
 
   @Mock
-  private Instance<EventContextFilter> eventContextFilters;
-
-  @Mock
   private Instance<EventTrigger> eventTriggers;
-
-  @Mock
-  private EventContextFilter eventContextFilter;
 
   @Mock
   private EventTrigger eventTrigger;
@@ -76,8 +66,6 @@ public class SynchronizationEventTest extends MockableBaseTest {
 
   @Before
   public void stubMethods() {
-    when(eventContextFilter.getName()).thenReturn(CONTEXT_FILTER_NAME);
-
     when(eventTrigger.getPriority()).thenReturn(100);
     when(eventTrigger.handlesEvent(HANDLED_EVENT)).thenReturn(true);
     when(eventTrigger.handlesEvent(UNHANDLED_EVENT)).thenReturn(false);
@@ -181,53 +169,5 @@ public class SynchronizationEventTest extends MockableBaseTest {
 
     synchronizationEvent.clearCurrentEventContext();
     assertThat(synchronizationEvent.getCurrentEventContext(), nullValue());
-  }
-
-  @Test
-  public void checkEventTriggeringNotAllowedByEventContextFilter() {
-    when(eventContextFilters.stream()).thenReturn(Stream.of(eventContextFilter));
-    doReturn(false).when(eventContextFilter).matches();
-
-    assertThat(synchronizationEvent.isEventTriggeringAllowed(CONTEXT_FILTER_NAME), equalTo(false));
-  }
-
-  @Test
-  public void checkEventTriggeringAllowedByEventContextFilter() {
-    when(eventContextFilters.stream()).thenReturn(Stream.of(eventContextFilter));
-    doReturn(true).when(eventContextFilter).matches();
-
-    assertThat(synchronizationEvent.isEventTriggeringAllowed(CONTEXT_FILTER_NAME), equalTo(true));
-  }
-
-  @Test
-  public void checkEventTriggeringNotAllowedIfThereIsNoEventContextFilter() {
-    when(eventContextFilters.stream()).thenReturn(Stream.empty());
-
-    assertThat(synchronizationEvent.isEventTriggeringAllowed(CONTEXT_FILTER_NAME), equalTo(false));
-  }
-
-  @Test
-  public void checkEventTriggeringNotAllowedByUnknownEventContextFilter() {
-    when(eventContextFilters.stream()).thenReturn(Stream.of(eventContextFilter));
-
-    assertThat(synchronizationEvent.isEventTriggeringAllowed("UNKNOWN"), equalTo(false));
-  }
-
-  @Test
-  public void checkEventTriggeringNotAllowedByNullEventContextFilter() {
-    when(eventContextFilters.stream()).thenReturn(Stream.of(eventContextFilter));
-
-    assertThat(synchronizationEvent.isEventTriggeringAllowed(null), equalTo(false));
-  }
-
-  @Test
-  public void checkErrorWhenMultipleEventContextFiltersWithSameNameAreFound() {
-    when(eventContextFilters.stream())
-        .thenReturn(Stream.of(eventContextFilter, eventContextFilter));
-
-    OBException exception = assertThrows(OBException.class,
-        () -> synchronizationEvent.isEventTriggeringAllowed(CONTEXT_FILTER_NAME));
-    assertThat(exception.getMessage(),
-        equalTo("Found multiple event context filters with name " + CONTEXT_FILTER_NAME));
   }
 }
