@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2022 Openbravo SLU 
+ * All portions are Copyright (C) 2022-2025 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -20,10 +20,12 @@ package org.openbravo.synchronization.event;
 
 import java.util.Map;
 
+import org.openbravo.base.Prioritizable;
+
 /**
  * Provides the ability of triggering synchronization events
  */
-public interface EventTrigger {
+public interface EventTrigger extends Prioritizable {
 
   /**
    * Triggers a single record synchronization event
@@ -52,16 +54,4 @@ public interface EventTrigger {
    *         returned.
    */
   boolean handlesEvent(String event);
-
-  /**
-   * @return an integer representing the priority of this EventTrigger. It is used to select the
-   *         EventTrigger with most priority in case there exists several instances which can handle
-   *         the same kind of synchronization event. In that case, the one with the lowest priority
-   *         will be used to trigger those events. By default this method returns 100.
-   * 
-   * @see #handlesEvent(String)
-   */
-  default int getPriority() {
-    return 100;
-  }
 }

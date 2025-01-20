@@ -11,13 +11,16 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2023 Openbravo SLU 
+ * All portions are Copyright (C) 2023-2025 Openbravo SLU 
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
  */
 package org.openbravo.synchronization.event;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,10 +31,12 @@ import java.util.stream.Stream;
 
 import javax.enterprise.inject.Instance;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.openbravo.test.base.MockableBaseTest;
 
 /**
@@ -39,6 +44,7 @@ import org.openbravo.test.base.MockableBaseTest;
  */
 public class SynchronizationEventTest extends MockableBaseTest {
 
+  private static final String CONTEXT_NAME = "TEST_CONTEXT";
   private static final String HANDLED_EVENT = "A";
   private static final String UNHANDLED_EVENT = "B";
   private static final String RECORD_ID = "1";
@@ -55,6 +61,7 @@ public class SynchronizationEventTest extends MockableBaseTest {
   private EventTrigger morePrioritizedEventTrigger;
 
   @InjectMocks
+  @Spy
   private SynchronizationEvent synchronizationEvent;
 
   @Before
@@ -66,6 +73,11 @@ public class SynchronizationEventTest extends MockableBaseTest {
     when(morePrioritizedEventTrigger.getPriority()).thenReturn(50);
     when(morePrioritizedEventTrigger.handlesEvent(HANDLED_EVENT)).thenReturn(true);
     when(morePrioritizedEventTrigger.handlesEvent(UNHANDLED_EVENT)).thenReturn(false);
+  }
+
+  @After
+  public void cleanUp() {
+    synchronizationEvent.clearCurrentEventContext();
   }
 
   @Test
@@ -143,5 +155,19 @@ public class SynchronizationEventTest extends MockableBaseTest {
     // ... then the event is never triggered
     verify(morePrioritizedEventTrigger, never()).triggerEvent(UNHANDLED_EVENT, FILTER_PARAMS);
     verify(eventTrigger, never()).triggerEvent(UNHANDLED_EVENT, FILTER_PARAMS);
+  }
+
+  @Test
+  public void noCurrentEventContextIsSetByDefault() {
+    assertThat(synchronizationEvent.getCurrentEventContext(), nullValue());
+  }
+
+  @Test
+  public void canSetAndClearTheCurrentEventContext() {
+    synchronizationEvent.setCurrentEventContext(CONTEXT_NAME);
+    assertThat(synchronizationEvent.getCurrentEventContext(), equalTo(CONTEXT_NAME));
+
+    synchronizationEvent.clearCurrentEventContext();
+    assertThat(synchronizationEvent.getCurrentEventContext(), nullValue());
   }
 }

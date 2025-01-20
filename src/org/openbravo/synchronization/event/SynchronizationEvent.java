@@ -11,7 +11,7 @@
  * under the License. 
  * The Original Code is Openbravo ERP. 
  * The Initial Developer of the Original Code is Openbravo SLU 
- * All portions are Copyright (C) 2022 Openbravo SLU 
+ * All portions are Copyright (C) 2022-2025 Openbravo SLU
  * All Rights Reserved. 
  * Contributor(s):  ______________________________________.
  ************************************************************************
@@ -38,6 +38,7 @@ import org.openbravo.base.weld.WeldUtils;
 public class SynchronizationEvent {
 
   private static final Logger log = LogManager.getLogger();
+  private static final ThreadLocal<String> currentEventContext = new ThreadLocal<>();
 
   @Inject
   @Any
@@ -51,6 +52,30 @@ public class SynchronizationEvent {
   }
 
   /**
+   * Sets the current event context
+   *
+   * @param eventContext
+   *          The identifier of the event context to be set as the current one
+   */
+  public void setCurrentEventContext(String eventContext) {
+    currentEventContext.set(eventContext);
+  }
+
+  /**
+   * Clears the current event context
+   */
+  public void clearCurrentEventContext() {
+    currentEventContext.remove();
+  }
+
+  /**
+   * @return the current event context or null if no event context has been explicitly set
+   */
+  public String getCurrentEventContext() {
+    return currentEventContext.get();
+  }
+
+  /**
    * Triggers a single record synchronization event
    * 
    * @param event
@@ -60,11 +85,13 @@ public class SynchronizationEvent {
    *          event payload.
    */
   public void triggerEvent(String event, String recordId) {
-    log.trace("Triggering event {} for record ID {}", event, recordId);
+    log.trace("Triggering event {} for record ID {} under context {}", event, recordId,
+        getCurrentEventContext());
     Optional<EventTrigger> optTrigger = getEventTrigger(event);
     if (optTrigger.isPresent()) {
       optTrigger.get().triggerEvent(event, recordId);
-      log.trace("Triggered event {} for record ID {}", event, recordId);
+      log.trace("Triggered event {} for record ID {} under context {}", event, recordId,
+          getCurrentEventContext());
     } else {
       log.trace("No trigger found for event {}, record ID {}", event, recordId);
     }
@@ -80,11 +107,13 @@ public class SynchronizationEvent {
    *          The keys are the parameter name and the map values are the values for each parameter.
    */
   public void triggerEvent(String event, Map<String, Object> params) {
-    log.trace("Triggering multiple record event {} with params {}", event, params);
+    log.trace("Triggering multiple record event {} with params {} under context {}", event, params,
+        getCurrentEventContext());
     Optional<EventTrigger> optTrigger = getEventTrigger(event);
     if (optTrigger.isPresent()) {
       optTrigger.get().triggerEvent(event, params);
-      log.trace("Triggered multiple record event {} with params {}", event, params);
+      log.trace("Triggered multiple record event {} with params {} under context {}", event, params,
+          getCurrentEventContext());
     } else {
       log.trace("No trigger found for multiple record event {}, params {}", event, params);
     }
@@ -95,6 +124,9 @@ public class SynchronizationEvent {
    * 
    * @param event
    *          The unique identifier of a synchronization event
+   *
+   * @return an Optional describing the EvenTrigger instance with most priority that is able to
+   *         trigger the provided event
    */
   private Optional<EventTrigger> getEventTrigger(String event) {
     return eventTriggers.stream()
