@@ -58,6 +58,9 @@
       <foreign-key foreignTable="C_CURRENCY" name="C_OBJECTIVE_C_CURRENCY">
         <reference local="C_CURRENCY_ID" foreign="C_CURRENCY_ID"/>
       </foreign-key>
+      <index name="C_OBJECTIVE_OBJDATE" unique="false">
+        <index-column name="C_OBJECTIVE_DATE"/>
+      </index>
       <unique name="C_OBJECTIVE_UNIQUE">
         <unique-column name="AD_ORG_ID"/>
         <unique-column name="C_OBJECTIVE_DATE"/>
