@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # ORACLE DATABASE EXPRESS EDITION 21c
+  # =============================================================================
+  oracle-db:
+    image: container-registry.oracle.com/database/express:21c-xe
+    container_name: openbravo-oracle-db
+    hostname: oracle-db
+    ports:
+      - "1521:1521"    # Oracle Database port
+      - "5500:5500"    # Oracle Enterprise Manager Express
+    environment:
+      # Oracle system password (SYS, SYSTEM users)
+      - ORACLE_PWD=${ORACLE_PWD:-OpenbravoDemo123}
+      # Character set for Openbravo compatibility
+      - ORACLE_CHARACTERSET=AL32UTF8
+      # Enable archivelog for demo stability
+      - ENABLE_ARCHIVELOG=true
+      # Set PDB name for consistency
+      - ORACLE_PDB=${ORACLE_PDB:-XEPDB1}
+      # Configure shared memory for better performance
+      - ORACLE_SGA_SIZE=${ORACLE_SGA_SIZE:-1024}
+      - ORACLE_PGA_SIZE=${ORACLE_PGA_SIZE:-512}
+      # Application user credentials (for initialization scripts)
+      - ORACLE_APP_USER=${ORACLE_APP_USER:-openbravo}
+      - ORACLE_APP_PASSWORD=${ORACLE_APP_PASSWORD:-openbravo}
+      - ORACLE_SCHEMA=${ORACLE_SCHEMA:-OPENBRAVO}
+    volumes:
+      # Persistent data storage
+      - oracle-data:/opt/oracle/oradata
+      - oracle-logs:/opt/oracle/diag
+      # Initialization scripts (executed once on first start)
+      - ./docker/oracle-init:/opt/oracle/scripts/startup:ro
+      # Setup scripts (executed on every container start)
+      - ./docker/oracle-setup:/opt/oracle/scripts/setup:ro
+      # Custom scripts directory
+      - ./docker/scripts:/opt/oracle/scripts/custom:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "sqlplus -s system/${ORACLE_PWD:-OpenbravoDemo123}@//localhost:1521/XE @/opt/oracle/scripts/custom/healthcheck.sql || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 180s
+    networks:
+      - openbravo-network
+    shm_size: 1g  # Shared memory for Oracle
+    labels:
+      - "com.openbravo.service=oracle-database"
+      - "com.openbravo.environment=demo"
+
+  # =============================================================================
+  # ADMINER - ORACLE WEB ADMINISTRATION TOOL
+  # =============================================================================
+  adminer:
+    image: adminer:4.8.1
+    container_name: openbravo-adminer
+    hostname: adminer
+    ports:
+      - "8081:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=oracle-db:1521
+      - ADMINER_DESIGN=lucas
+      - ADMINER_PLUGINS=tables-filter tinymce
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    networks:
+      - openbravo-network
+    restart: unless-stopped
+    labels:
+      - "com.openbravo.service=database-admin"
+      - "com.openbravo.environment=demo"
+
+  # =============================================================================
+  # ORACLE DATA BACKUP SERVICE (Optional - use with profile)
+  # =============================================================================
+  oracle-backup:
+    image: container-registry.oracle.com/database/express:21c-xe
+    container_name: openbravo-backup
+    volumes:
+      - oracle-data:/opt/oracle/oradata:ro
+      - ./docker/backup:/backup
+      - ./docker/scripts:/scripts:ro
+    environment:
+      - ORACLE_PWD=${ORACLE_PWD:-OpenbravoDemo123}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
+    command: ["/scripts/backup-service.sh"]
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    networks:
+      - openbravo-network
+    restart: "no"
+    profiles:
+      - backup
+    labels:
+      - "com.openbravo.service=backup"
+      - "com.openbravo.environment=demo"
+
+# =============================================================================
+# VOLUMES CONFIGURATION
+# =============================================================================
+volumes:
+  # Oracle database persistent data
+  oracle-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./docker/data/oracle
+    labels:
+      - "com.openbravo.volume=oracle-data"
+  
+  # Oracle diagnostic logs
+  oracle-logs:
+    driver: local
+    labels:
+      - "com.openbravo.volume=oracle-logs"
+
+# =============================================================================
+# NETWORKS CONFIGURATION
+# =============================================================================
+networks:
+  openbravo-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    labels:
+      - "com.openbravo.network=demo-environment"
