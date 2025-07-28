@@ -1,0 +1,4 @@
+#!/bin/bash
+# Script adicional para configurar SQLcl
+mkdir -p /app/config
+mkdir -p /app/scripts
