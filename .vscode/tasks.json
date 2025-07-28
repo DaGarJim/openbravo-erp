@@ -1,0 +1,411 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🐳 Levantar entorno Docker",
+            "type": "shell",
+            "command": "docker",
+            "args": ["compose", "up", "-d"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Inicia los contenedores de Oracle XE y SQLcl MCP"
+        },
+        {
+            "label": "📋 Cargar esquema Openbravo",
+            "type": "shell",
+            "command": "./scripts/01_load_openbravo.sh",
+            "group": "build",
+            "dependsOn": "🐳 Levantar entorno Docker",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Carga el esquema y datos básicos de Openbravo en Oracle XE"
+        },
+        {
+            "label": "✅ Verificar entorno",
+            "type": "shell",
+            "command": "./scripts/02_verify_environment.sh",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Verifica que todos los componentes del entorno están funcionando correctamente"
+        },
+        {
+            "label": "🔄 Reset suave (reiniciar)",
+            "type": "shell",
+            "command": "./scripts/03_reset_environment.sh",
+            "args": ["--soft"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Reinicia los contenedores sin perder datos"
+        },
+        {
+            "label": "🗑️ Reset completo",
+            "type": "shell",
+            "command": "./scripts/03_reset_environment.sh",
+            "args": ["--full"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Elimina completamente el entorno (DESTRUYE DATOS)"
+        },
+        {
+            "label": "🏗️ Compilar Openbravo (ant setup)",
+            "type": "shell",
+            "command": "ant",
+            "args": ["setup"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Ejecuta la configuración inicial de Openbravo"
+        },
+        {
+            "label": "📦 Compilar Openbravo (ant install.source)",
+            "type": "shell",
+            "command": "ant",
+            "args": ["install.source"],
+            "group": "build",
+            "dependsOn": "🏗️ Compilar Openbravo (ant setup)",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Instala el código fuente y genera el esquema SQL"
+        },
+        {
+            "label": "🚀 Setup completo del entorno",
+            "type": "shell",
+            "command": "./setup.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Ejecuta el setup completo automatizado: compila Openbravo, levanta Docker, carga esquema y verifica"
+        },
+        {
+            "label": "🚀 Setup completo del entorno (manual)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "🏗️ Compilar Openbravo (ant setup)",
+                "📦 Compilar Openbravo (ant install.source)",
+                "🐳 Levantar entorno Docker",
+                "📋 Cargar esquema Openbravo",
+                "✅ Verificar entorno"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Ejecuta el setup completo paso a paso: compila Openbravo, levanta Docker, carga esquema y verifica"
+        },
+        {
+            "label": "📊 Conectar a Oracle XE (sqlplus)",
+            "type": "shell",
+            "command": "sqlplus",
+            "args": ["openbravo/ob_pwd@//localhost:1521/XEPDB1"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Abre una sesión interactiva de sqlplus con la base de datos Openbravo"
+        },
+        {
+            "label": "🔍 Ver logs de Oracle XE",
+            "type": "shell",
+            "command": "docker",
+            "args": ["logs", "-f", "openbravo-oracle-xe"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Muestra los logs en tiempo real del contenedor Oracle XE"
+        },
+        {
+            "label": "🔍 Ver logs de SQLcl MCP",
+            "type": "shell",
+            "command": "docker",
+            "args": ["logs", "-f", "openbravo-sqlcl-mcp"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Muestra los logs en tiempo real del contenedor SQLcl MCP"
+        },
+        {
+            "label": "🐘 Setup PostgreSQL (Recomendado)",
+            "type": "shell",
+            "command": "docker",
+            "args": ["compose", "up", "-d"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "⭐ RECOMENDADO: Inicia el entorno PostgreSQL (más compatible con Openbravo)"
+        },
+        {
+            "label": "📊 Cargar esquema PostgreSQL",
+            "type": "shell",
+            "command": "./scripts/01_load_openbravo_postgres.sh",
+            "group": "build",
+            "dependsOn": "🐘 Setup PostgreSQL (Recomendado)",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Carga el esquema y datos básicos de Openbravo en PostgreSQL"
+        },
+        {
+            "label": "🔍 Verificar entorno PostgreSQL",
+            "type": "shell",
+            "command": "./scripts/02_verify_environment_postgres.sh",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Verifica que el entorno PostgreSQL está funcionando correctamente"
+        },
+        {
+            "label": "🔄 Reset suave PostgreSQL",
+            "type": "shell",
+            "command": "./scripts/03_reset_environment_postgres.sh",
+            "args": ["--soft"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Reinicia los contenedores PostgreSQL sin perder datos"
+        },
+        {
+            "label": "🗑️ Reset completo PostgreSQL",
+            "type": "shell",
+            "command": "./scripts/03_reset_environment_postgres.sh",
+            "args": ["--full"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "⚠️ PELIGROSO: Elimina completamente el entorno PostgreSQL (DESTRUYE DATOS)"
+        },
+        {
+            "label": "🗄️ Conectar a PostgreSQL (psql)",
+            "type": "shell",
+            "command": "psql",
+            "args": ["postgresql://tad:tad@localhost:5432/openbravo"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Abre una sesión interactiva de psql con la base de datos Openbravo"
+        },
+        {
+            "label": "🔍 Ver logs PostgreSQL",
+            "type": "shell",
+            "command": "docker",
+            "args": ["logs", "-f", "openbravo-postgres"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Muestra los logs en tiempo real del contenedor PostgreSQL"
+        },
+        {
+            "label": "🔍 Ver logs MCP PostgreSQL",
+            "type": "shell",
+            "command": "docker",
+            "args": ["logs", "-f", "openbravo-postgres-mcp"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Muestra los logs en tiempo real del servidor MCP PostgreSQL"
+        }
+    ]
+}

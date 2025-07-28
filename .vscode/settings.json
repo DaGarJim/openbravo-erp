@@ -1,0 +1,5 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "chat.tools.autoApprove": true,
+    "liveServer.settings.port": 5501,
+}

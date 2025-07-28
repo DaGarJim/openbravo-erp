@@ -1,0 +1,78 @@
+{
+    "name": "Openbravo ERP + Oracle XE + SQLcl MCP",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "sqlcl-mcp",
+    "workspaceFolder": "/app",
+    
+    "features": {
+        "ghcr.io/devcontainers/features/java:1": {
+            "version": "11",
+            "installMaven": "false",
+            "installGradle": "false"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": "true"
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest"
+        }
+    },
+    
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.vscode-json",
+                "redhat.vscode-xml",
+                "vscjava.vscode-java-pack",
+                "ms-vscode.sql-database-projects-vscode",
+                "Oracle.oracle-developer-tools",
+                "GitHub.copilot",
+                "GitHub.copilot-chat"
+            ],
+            "settings": {
+                "java.jdt.ls.java.home": "/usr/lib/jvm/java-11-openjdk",
+                "java.configuration.runtimes": [
+                    {
+                        "name": "JavaSE-11",
+                        "path": "/usr/lib/jvm/java-11-openjdk"
+                    }
+                ],
+                "files.associations": {
+                    "*.sql": "sql",
+                    "*.xml": "xml"
+                },
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    
+    "forwardPorts": [
+        1521,  // Oracle XE
+        5500,  // Oracle EM
+        8080   // SQLcl MCP
+    ],
+    
+    "portsAttributes": {
+        "1521": {
+            "label": "Oracle XE Database",
+            "onAutoForward": "notify"
+        },
+        "5500": {
+            "label": "Oracle Enterprise Manager",
+            "onAutoForward": "openBrowser"
+        },
+        "8080": {
+            "label": "SQLcl MCP Server",
+            "onAutoForward": "notify"
+        }
+    },
+    
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+    ],
+    
+    "postCreateCommand": "echo 'DevContainer iniciado. Usa las tareas de VS Code para gestionar el entorno.'",
+    
+    "remoteUser": "sqlcl"
+}

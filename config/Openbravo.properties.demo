@@ -1,0 +1,20 @@
+# Configuración de Openbravo para Oracle XE
+# Este archivo es usado por el entorno de demo
+
+# Database configuration for Oracle XE
+bbdd.rdbms=ORACLE
+bbdd.driver=oracle.jdbc.OracleDriver
+bbdd.url=jdbc:oracle:thin:@//localhost:1521/XEPDB1
+bbdd.userid=openbravo
+bbdd.password=ob_pwd
+
+# Database session configuration
+bbdd.sessionConfig.Oracle=ALTER SESSION SET NLS_DATE_FORMAT='DD-MM-YYYY'
+
+# Additional Oracle specific settings
+bbdd.oracle.onCreateFunction=
+bbdd.oracle.sequence.increment=1
+
+# Application context
+context.name=openbravo
+attach.path=../attachments

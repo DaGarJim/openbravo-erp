@@ -7,30 +7,20 @@
         "Authorization": "Bearer ${input:github_mcp_pat}"
       }
     },
-    "oracle": {
-            "command": "docker",
-            "args": [
-                "run",
-                "-i",
-                "--rm",
-                "-e",
-                "ORACLE_CONNECTION_STRING",
-                "-e",
-                "TARGET_SCHEMA",
-                "-e",
-                "CACHE_DIR",
-                "-e",
-                "THICK_MODE",
-                "dmeppiel/oracle-mcp-server"
-            ],
-            "env": {
-               "ORACLE_CONNECTION_STRING":"<db-username>/${input:db-password}@<host>:1521/<service-name>",
-               "TARGET_SCHEMA":"",
-               "CACHE_DIR":".cache",
-               "THICK_MODE":"",  // Optional: set to "1" to enable thick mode
-               "ORACLE_CLIENT_LIB_DIR":"" // Optional: in case you use thick mode and you want to set a non-default directory for client libraries
-            }
-}
+    "postgres": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--network", "openbravo-erp_openbravo-net",
+        "-e", "POSTGRES_CONNECTION_STRING",
+        "mcp/postgres-server:latest"
+      ],
+      "env": {
+        "POSTGRES_CONNECTION_STRING": "postgresql://${input:db-username}:${input:db-password}@postgres:5432/openbravo"
+      }
+    }
   },
   "inputs": [
     {
@@ -40,10 +30,17 @@
       "password": true
     },
     {
-       "id": "db-password",
-       "type": "promptString",
-       "description": "Oracle DB Password",
-       "password": true,
-     }
+      "id": "db-username",
+      "type": "promptString", 
+      "description": "PostgreSQL Username",
+      "default": "tad"
+    },
+    {
+      "id": "db-password",
+      "type": "promptString",
+      "description": "PostgreSQL Password",
+      "password": true,
+      "default": "tad"
+    }
   ]
 }

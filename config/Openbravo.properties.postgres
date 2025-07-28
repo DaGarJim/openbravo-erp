@@ -1,0 +1,72 @@
+# Configuración de Openbravo para PostgreSQL
+# Demo environment configuration
+
+####################
+# Date/time format #
+####################
+
+dateFormat.js=%d-%m-%Y
+dateFormat.sql=DD-MM-YYYY
+dateFormat.java=dd-MM-yyyy
+dateTimeFormat.java=dd-MM-yyyy HH:mm:ss
+dateTimeFormat.sql=DD-MM-YYYY HH24:MI:SS
+
+###########
+# DataBase #
+###########
+
+bbdd.rdbms=POSTGRE
+bbdd.driver=org.postgresql.Driver
+bbdd.url=jdbc:postgresql://localhost:5432/openbravo
+bbdd.sid=openbravo
+bbdd.systemUser=postgres
+bbdd.systemPassword=tad
+bbdd.user=tad
+bbdd.password=tad
+
+###########
+# Context #
+###########
+
+context.name=/openbravo
+
+######################
+# Source Path #
+######################
+
+source.path=/Users/degr/Documents/GitHub/openbravo-erp
+
+####################
+# Deploy Path #
+####################
+
+deploy.mode=class
+
+######################
+# Ant Classpath       #
+######################
+
+java.naming.factory.initial=org.apache.openejb.client.RemoteInitialContextFactory
+
+####################
+# Attach Path      #
+####################
+
+attach.path=/Users/degr/Documents/GitHub/openbravo-erp/attachments
+
+####################
+# Web URL          #
+####################
+
+web.url=http://localhost:8080/openbravo
+
+####################
+# Mail Configuration #
+####################
+
+mail.smtp.server=localhost
+mail.smtp.port=25
+mail.smtp.user=
+mail.smtp.password=
+mail.smtp.channel=
+mail.smtp.connectiontimeout=

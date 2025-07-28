@@ -4,7 +4,23 @@
 *.iml
 attachments
 bin
-# Exclude all build directories at any level
+# Exclude all build directorie#!/modules/org.openbravo.v3
+!/modules/org.openbravo.v3.datasets
+!/modules/org.openbravo.v3.framework
+
+# Docker and Oracle specific
+docker-data/
+oracle-data/
+*.dmp
+*.dump
+
+# SQLcl aliases and history
+.sqlcl_history
+login.sql
+
+# Demo environment scripts (keep templates only)
+scripts/*.sql
+!scripts/*.sht any level
 # except lib/build present in top level
 build
 !/lib/build
