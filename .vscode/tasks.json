@@ -406,6 +406,75 @@
             },
             "problemMatcher": [],
             "detail": "Muestra los logs en tiempo real del servidor MCP PostgreSQL"
+        },
+        {
+            "label": "🔌 Iniciar servidor MCP PostgreSQL",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "run",
+                "-d",
+                "--name", "postgres-mcp-server",
+                "-p", "8000:8000",
+                "--network", "openbravo-erp_openbravo-net",
+                "-e", "DATABASE_URI=postgresql://tad:tad@postgres:5432/openbravo",
+                "crystaldba/postgres-mcp:latest",
+                "--access-mode=unrestricted",
+                "--transport=sse"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Inicia el servidor MCP PostgreSQL en modo SSE (puerto 8000)"
+        },
+        {
+            "label": "🔌 Detener servidor MCP PostgreSQL",
+            "type": "shell",
+            "command": "docker",
+            "args": ["stop", "postgres-mcp-server", "&&", "docker", "rm", "postgres-mcp-server"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Detiene y elimina el servidor MCP PostgreSQL"
+        },
+        {
+            "label": "🧪 Probar servidor MCP PostgreSQL",
+            "type": "shell",
+            "command": "./test-mcp.sh",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Ejecuta pruebas del servidor MCP PostgreSQL"
         }
     ]
 }

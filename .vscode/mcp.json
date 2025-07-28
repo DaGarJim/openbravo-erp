@@ -8,18 +8,20 @@
       }
     },
     "postgres": {
+      "type": "sse",
+      "url": "http://localhost:8000/sse"
+    },
+    "postgres-stdio": {
       "command": "docker",
       "args": [
         "run",
         "-i",
         "--rm",
         "--network", "openbravo-erp_openbravo-net",
-        "-e", "POSTGRES_CONNECTION_STRING",
-        "mcp/postgres-server:latest"
-      ],
-      "env": {
-        "POSTGRES_CONNECTION_STRING": "postgresql://${input:db-username}:${input:db-password}@postgres:5432/openbravo"
-      }
+        "-e", "DATABASE_URI=postgresql://tad:tad@postgres:5432/openbravo",
+        "crystaldba/postgres-mcp:latest",
+        "--access-mode=unrestricted"
+      ]
     }
   },
   "inputs": [
