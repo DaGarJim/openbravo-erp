@@ -18,7 +18,7 @@ oracle-data/
 .sqlcl_history
 login.sql
 
-# Demo environment scripts (keep templates only)
+# Tests environment scripts (keep templates only)
 scripts/*.sql
 !scripts/*.sht any level
 # except lib/build present in top level

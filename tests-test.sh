@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "🧪 PRUEBA RÁPIDA DE LA DEMO"
-echo "=========================="
+echo "🧪 PRUEBA RÁPIDA DE TESTS"
+echo "========================"
 
 # Verificar Docker
 echo "📦 Verificando Docker..."
@@ -16,7 +16,7 @@ echo ""
 # Verificar PostgreSQL si está corriendo
 if docker ps | grep -q "openbravo-postgres"; then
     echo "🗄️ Probando PostgreSQL..."
-    docker exec openbravo-postgres psql -U tad -d openbravo -c "SELECT 'Demo funcionando!' as status;"
+    docker exec openbravo-postgres psql -U tad -d openbravo -c "SELECT 'Tests funcionando!' as status;"
     echo ""
     
     echo "📊 Consulta de ejemplo - Top clientes:"

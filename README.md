@@ -1,6 +1,6 @@
-# Entorno de Demo: Openbravo ERP + PostgreSQL + MCP Server
+# Entorno de Tests: Openbravo ERP + PostgreSQL + MCP Server
 
-> 🚀 **Entorno de desarrollo y demo** que integra Openbravo ERP con PostgreSQL y servidor MCP para interacción con agentes de IA como GitHub Copilot.
+> 🚀 **Entorno de desarrollo y tests** que integra Openbravo ERP con PostgreSQL y servidor MCP para interacción con agentes de IA como GitHub Copilot.
 
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/) 

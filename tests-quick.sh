@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================================================
-# Script de Demo Rápido - Openbravo ERP + Oracle XE + SQLcl MCP
+# Script de Tests Rápido - Openbravo ERP + Oracle XE + SQLcl MCP
 # ============================================================================
 
 set -euo pipefail

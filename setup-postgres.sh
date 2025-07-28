@@ -27,7 +27,7 @@ show_banner() {
 ╚██████╔╝██║     ███████╗██║ ╚████║██████╔╝██║  ██║██║  ██║ ╚████╔╝ ╚██████╔╝
  ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝   ╚═════╝ 
                                                                               
-         🐘 PostgreSQL + 🤖 MCP Server + 📊 Demo Environment
+         🐘 PostgreSQL + 🤖 MCP Server + 📊 Tests Environment
                     ⚡ SETUP AUTOMATIZADO COMPLETO ⚡
 EOF
     echo -e "${NC}"
@@ -299,7 +299,7 @@ check_mcp_server() {
         ((attempt++))
     done
     
-    warn "Servidor MCP no está disponible (esto es opcional para la demo básica)"
+    warn "Servidor MCP no está disponible (esto es opcional para tests básicos)"
     return 0
 }
 

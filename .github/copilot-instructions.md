@@ -46,7 +46,7 @@ Eres un agente de codificación con acceso a una base de datos PostgreSQL que co
 
 ---
 
-## 🚀 Procedimiento de Arranque de la Demo
+## 🚀 Procedimiento de Arranque de Tests
 
 ### Paso 1: Validación Inicial del Entorno
 ```bash
@@ -211,13 +211,13 @@ psql postgresql://tad:tad@localhost:5432/openbravo -c "SELECT * FROM c_bpartner 
 
 ## 🔍 Validación del Entorno
 
-### Lista de Verificación para Demo
+### Lista de Verificación para Tests
 
 Para considerar el entorno **completamente operativo**:
 
 - [ ] **PostgreSQL ejecutándose**: `docker ps` muestra `openbravo-postgres` con estado `Up`
 - [ ] **Base de datos creada**: Script de carga ejecutado sin errores
-- [ ] **Tablas presentes**: 6 tablas principales cargadas (`AD_CLIENT`, `AD_ORG`, `C_BPARTNER`, `M_PRODUCT`, `DEMO_STATUS`, `MCP_OPERATIONS_LOG`)
+- [ ] **Tablas presentes**: 6 tablas principales cargadas (`AD_CLIENT`, `AD_ORG`, `C_BPARTNER`, `M_PRODUCT`, `TESTS_STATUS`, `MCP_OPERATIONS_LOG`)
 - [ ] **Datos de ejemplo**: 5 socios de negocio y 2 productos disponibles
 - [ ] **Cliente MCP funcional**: `analyze_db_health` devuelve métricas válidas
 - [ ] **Entorno Python**: Virtual environment configurado con psycopg2-binary
@@ -253,7 +253,7 @@ Al ejecutar `analyze_db_health`, debe devolver:
 }
 ```
 
-*Nota: Los valores pueden variar si se han realizado actualizaciones durante la demo.*
+*Nota: Los valores pueden variar si se han realizado actualizaciones durante tests.*
 
 ---
 
@@ -294,7 +294,7 @@ docker compose up -d
 | `AD_ORG` | Organizaciones | `AD_ORG_ID`, `AD_CLIENT_ID`, `NAME` |
 | `C_BPARTNER` | Socios de Negocio (Clientes/Proveedores) | `C_BPARTNER_ID`, `VALUE`, `NAME`, `CREDITLIMIT`, `ISCUSTOMER` |
 | `M_PRODUCT` | Productos | `M_PRODUCT_ID`, `VALUE`, `NAME`, `DESCRIPTION` |
-| `DEMO_STATUS` | Estado de la Demo | `STATUS`, `LAST_UPDATE` |
+| `TESTS_STATUS` | Estado de Tests | `STATUS`, `LAST_UPDATE` |
 | `MCP_OPERATIONS_LOG` | Auditoría MCP | `ID`, `OPERATION_TYPE`, `TABLE_NAME`, `EXECUTED_AT` |
 
 ### Datos de Ejemplo Incluidos
@@ -517,7 +517,7 @@ Cuando generes reportes, considera estos KPIs empresariales:
 
 Al interactuar con este entorno, el agente debe:
 
-- ✅ Demostrar capacidades de análisis de datos empresariales
+- ✅ Mostrar capacidades de análisis de datos empresariales
 - ✅ Mantener integridad y seguridad de datos
 - ✅ Proporcionar insights de negocio valiosos
 - ✅ Seguir mejores prácticas de SQL y base de datos
@@ -526,7 +526,7 @@ Al interactuar con este entorno, el agente debe:
 
 ---
 
-**Notas Finales**: Este entorno está optimizado para demostrar las capacidades de agentes de IA trabajando con sistemas ERP reales. Todos los datos son de ejemplo y el entorno es seguro para experimentación y aprendizaje.
+**Notas Finales**: Este entorno está optimizado para mostrar las capacidades de agentes de IA trabajando con sistemas ERP reales. Todos los datos son de ejemplo y el entorno es seguro para experimentación y aprendizaje.
 
 ---
 
@@ -602,7 +602,7 @@ Cuando generes reportes, considera estos KPIs empresariales:
 
 Al interactuar con este entorno, el agente debe:
 
-- ✅ Demostrar capacidades de análisis de datos empresariales
+- ✅ Mostrar capacidades de análisis de datos empresariales
 - ✅ Mantener integridad y seguridad de datos
 - ✅ Proporcionar insights de negocio valiosos
 - ✅ Seguir mejores prácticas de SQL y base de datos
@@ -611,4 +611,4 @@ Al interactuar con este entorno, el agente debe:
 
 ---
 
-**Notas Finales**: Este entorno está optimizado para demostrar las capacidades de agentes de IA trabajando con sistemas ERP reales. Todos los datos son de ejemplo y el entorno es seguro para experimentación y aprendizaje.
+**Notas Finales**: Este entorno está optimizado para mostrar las capacidades de agentes de IA trabajando con sistemas ERP reales. Todos los datos son de ejemplo y el entorno es seguro para experimentación y aprendizaje.

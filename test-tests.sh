@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Script de prueba rápida para la demo de Openbravo + PostgreSQL
+# Script de prueba rápida para tests de Openbravo + PostgreSQL
 # Autor: GitHub Copilot Agent
 
 set -e
 
-echo "🧪 PROBANDO LA DEMO DE OPENBRAVO + POSTGRESQL"
-echo "=============================================="
+echo "🧪 PROBANDO TESTS DE OPENBRAVO + POSTGRESQL"
+echo "==========================================="
 echo ""
 
 # Verificar contenedores
@@ -20,7 +20,7 @@ if docker exec openbravo-postgres pg_isready -U tad -d openbravo 2>/dev/null; th
     echo "✅ PostgreSQL está disponible"
     
     echo ""
-    echo "📊 Consultas de demo:"
+    echo "📊 Consultas de tests:"
     echo ""
     
     # Consulta 1: Listar tablas
@@ -56,7 +56,7 @@ if docker exec openbravo-postgres pg_isready -U tad -d openbravo 2>/dev/null; th
     " 2>/dev/null || echo "❌ Error en consulta de organizaciones"
     echo ""
     
-    echo "🎉 Demo lista para usar con GitHub Copilot!"
+    echo "🎉 Tests listos para usar con GitHub Copilot!"
     echo ""
     echo "✨ Ejemplos de consultas que puedes hacer:"
     echo '  • "Muéstrame los 5 clientes con mayor límite de crédito"'
@@ -68,7 +68,7 @@ if docker exec openbravo-postgres pg_isready -U tad -d openbravo 2>/dev/null; th
 else
     echo "❌ PostgreSQL no está disponible"
     echo ""
-    echo "🔧 Para iniciar la demo:"
+    echo "🔧 Para iniciar los tests:"
     echo "  docker compose up -d"
     echo "  ./scripts/01_load_openbravo_postgres.sh"
     echo ""
