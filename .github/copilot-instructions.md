@@ -1,69 +1,286 @@
-# Instrucciones para Agente de Codificación IA – Openbravo ERP + Oracle + SQLcl MCP
+# Instrucciones para Agente de Codificación IA – Openbravo ERP + PostgreSQL + MCP
 
 ## Descripción del Proyecto
 
-Este proyecto utiliza un fork del ERP Openbravo ([DaGarJim/openbravo-erp](https://github.com/DaGarJim/openbravo-erp)) para mostrar cómo un agente de codificación (como GitHub Copilot en modo agente) puede interactuar con una base de datos Oracle de forma segura y automatizada usando el protocolo **MCP** (Mission Control Protocol) de Oracle SQLcl.
+Este proyecto utiliza un fork del ERP Openbravo ([DaGarJim/openbravo-erp](https://github.com/DaGarJim/openbravo-erp)) para mostrar cómo un agente de codificación (como GitHub Copilot en modo agente) puede interactuar con una base de datos PostgreSQL de forma segura y automatizada usando el protocolo **MCP** (Model Context Protocol).
 
 ## 🎯 Estado Actual: IMPLEMENTADO ✅
 
 El entorno está **completamente implementado** con:
 
-- ✅ **docker-compose.yml** - Orquestación de Oracle XE y SQLcl MCP
-- ✅ **sqlcl/Dockerfile** - Imagen para servidor SQLcl MCP  
-- ✅ **scripts/01_load_openbravo.sh** - Script de carga automática de esquema
-- ✅ **scripts/02_verify_environment.sh** - Script de verificación completa
-- ✅ **scripts/03_reset_environment.sh** - Script de reset y limpieza
-- ✅ **.vscode/tasks.json** - Tareas preconfiguradas para VS Code
-- ✅ **.devcontainer/** - Configuración para VS Code Dev Containers
+- ✅ **docker-compose.yml** - Orquestación de PostgreSQL y servidor MCP
+- ✅ **mcp_client.py** - Cliente MCP Python para interacciones con la base de datos
+- ✅ **scripts/01_load_openbravo_postgres.sh** - Script de carga automática de esquema PostgreSQL
+- ✅ **scripts/02_verify_environment_postgres.sh** - Script de verificación completa
+- ✅ **scripts/03_reset_environment_postgres.sh** - Script de reset y limpieza
+- ✅ **.vscode/tasks.json** - Tareas preconfiguradas para VS Code (PostgreSQL)
 - ✅ **README.md completo** - Documentación detallada
-- ✅ **Esquema básico Openbravo** - Tablas y datos de ejemplo incluidos
+- ✅ **Esquema básico Openbravo** - Tablas y datos de ejemplo incluidos en PostgreSQL
 
 ## Objetivo del Agente
 
-Eres un agente de codificación con acceso a una base de datos Oracle XE que contiene un esquema básico de Openbravo ERP. Tu objetivo es:
+Eres un agente de codificación con acceso a una base de datos PostgreSQL que contiene un esquema básico de Openbravo ERP. Tu objetivo es:
 
-* Consultar y analizar datos usando SQL de forma natural
+* **SIEMPRE usar el cliente MCP** (`mcp_client.py`) para todas las interacciones con la base de datos
+* **NUNCA ejecutar SQL directamente** con psql, sqlplus o comandos directos
+* Consultar y analizar datos usando SQL de forma natural a través del protocolo MCP
 * Realizar actualizaciones controladas con auditoría automática  
 * Generar reportes y análisis de datos empresariales
 * Mantener integridad de datos y seguir mejores prácticas
+
+## 🚨 REGLAS OBLIGATORIAS PARA EL AGENTE
+
+### ✅ SIEMPRE HACER:
+1. **Usar exclusivamente el cliente MCP**: `/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py`
+2. **Verificar el entorno antes de comenzar** con las validaciones correspondientes
+3. **Estructurar respuestas en formato JSON** cuando use el cliente MCP
+4. **Verificar cambios** después de actualizaciones con consultas de confirmación
+5. **Usar transacciones seguras** y auditoría automática
+
+### ❌ NUNCA HACER:
+1. **Ejecutar psql directamente** (`psql postgresql://...`)
+2. **Usar comandos SQL directos** en terminal sin el cliente MCP
+3. **Omitir validaciones** del entorno antes de operar
+4. **Hacer cambios** sin verificación posterior
+5. **Ignorar mensajes de error** del cliente MCP
+
+---
+
+## 🚀 Procedimiento de Arranque de la Demo
+
+### Paso 1: Validación Inicial del Entorno
+```bash
+# Verificar que Docker esté ejecutándose
+docker --version
+
+# Verificar estado de contenedores existentes
+docker ps -a
+```
+
+### Paso 2: Configuración del Entorno Python
+```bash
+# Configurar entorno virtual Python (automático con herramientas VS Code)
+# El sistema creará automáticamente: /Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python
+
+# Instalar dependencias requeridas (automático)
+# psycopg2-binary se instalará automáticamente cuando sea necesario
+```
+
+### Paso 3: Levantar la Base de Datos PostgreSQL
+```bash
+# Usar la tarea de VS Code recomendada:
+# "🐘 Setup PostgreSQL (Recomendado)"
+docker compose up -d
+
+# Verificar que PostgreSQL esté ejecutándose
+docker ps | grep postgres
+```
+
+### Paso 4: Cargar el Esquema Openbravo
+```bash
+# Usar la tarea de VS Code:
+# "📊 Cargar esquema PostgreSQL"
+./scripts/01_load_openbravo_postgres.sh
+
+# Este script:
+# - Crea la base de datos 'openbravo' si no existe
+# - Carga el esquema básico con tablas principales
+# - Inserta datos de ejemplo (clientes, productos, organizaciones)
+# - Configura la auditoría MCP
+```
+
+### Paso 5: Verificación del Entorno
+```bash
+# Usar la tarea de VS Code:
+# "🔍 Verificar entorno PostgreSQL"
+./scripts/02_verify_environment_postgres.sh
+
+# Este script verifica:
+# - Conectividad a PostgreSQL
+# - Existencia de tablas principales
+# - Datos de ejemplo cargados
+# - Cliente MCP funcionando
+```
+
+### Paso 6: Prueba del Cliente MCP
+```bash
+# Probar conectividad del cliente MCP
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py analyze_db_health
+
+# Resultado esperado:
+# {
+#   "total_tables": 6,
+#   "total_clients": 5,
+#   "total_products": 2,
+#   "credit_exposure": "125000.00",
+#   "avg_credit_limit": "25000.000000000000"
+# }
+```
+
+### ✅ Validaciones de Éxito
+
+El entorno está correctamente configurado si:
+
+1. **PostgreSQL responde**: `docker ps` muestra contenedor `openbravo-postgres` en estado `Up`
+2. **Base de datos existe**: El script de verificación completa sin errores
+3. **Tablas cargadas**: `analyze_db_health` devuelve métricas válidas
+4. **Cliente MCP funciona**: Las consultas JSON se ejecutan correctamente
+5. **Datos de ejemplo presentes**: Se muestran 5 clientes y 2 productos
+
+### 🔧 Troubleshooting
+
+#### Error: "ModuleNotFoundError: No module named 'psycopg2'"
+```bash
+# Solución: Configurar entorno Python y instalar dependencias
+# (Se hace automáticamente con las herramientas de VS Code)
+```
+
+#### Error: "Connection refused" a PostgreSQL
+```bash
+# Verificar estado del contenedor
+docker ps -a | grep postgres
+
+# Reiniciar si es necesario
+docker compose restart postgres
+```
+
+#### Error: "Database does not exist"
+```bash
+# Ejecutar script de carga
+./scripts/01_load_openbravo_postgres.sh
+```
+
+### 📋 Ejemplos de Uso del Cliente MCP
+
+#### ✅ Ejemplo Correcto - Análisis de salud:
+```bash
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py analyze_db_health
+```
+
+#### ✅ Ejemplo Correcto - Consulta específica:
+```bash
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py execute_sql "SELECT COUNT(*) FROM c_bpartner WHERE iscustomer = 'Y'"
+```
+
+#### ✅ Ejemplo Correcto - Listar tablas:
+```bash
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py list_tables
+```
+
+#### ❌ Ejemplo INCORRECTO - No usar SQL directo:
+```bash
+# NUNCA HACER ESTO:
+psql postgresql://tad:tad@localhost:5432/openbravo -c "SELECT * FROM c_bpartner"
+```
 
 ---
 
 ## Componentes Clave
 
-* **`docker-compose.yml`** – Orquestación de Oracle XE y servidor SQLcl MCP
-* **`sqlcl/Dockerfile`** – Imagen optimizada para SQLcl con servidor MCP integrado
-* **`scripts/01_load_openbravo.sh`** – Script automatizado de carga de esquema Openbravo en Oracle
-* **`scripts/02_verify_environment.sh`** – Script de verificación completa del entorno
-* **`scripts/03_reset_environment.sh`** – Script de reset y limpieza del entorno
-* **`.vscode/tasks.json`** – Tareas preconfiguradas para desarrollo
+* **`docker-compose.yml`** – Orquestación de PostgreSQL y contenedores MCP
+* **`mcp_client.py`** – Cliente MCP Python para todas las interacciones con la base de datos
+* **`scripts/01_load_openbravo_postgres.sh`** – Script automatizado de carga de esquema PostgreSQL
+* **`scripts/02_verify_environment_postgres.sh`** – Script de verificación completa del entorno
+* **`scripts/03_reset_environment_postgres.sh`** – Script de reset y limpieza del entorno
+* **`.vscode/tasks.json`** – Tareas preconfiguradas para desarrollo PostgreSQL
 * **`README.md`** – Documentación completa y guías de uso
 
 ---
 
-## Flujo de Datos
+## Flujo de Datos MCP
 
-1. **Docker Compose** levanta Oracle XE en puerto 1521 y SQLcl MCP en puerto 8080
-2. **Script de carga** crea usuario `openbravo` y esquema básico con datos de ejemplo
-3. **SQLcl MCP** expone herramientas como `runSQL`, `describeSchema`, `listTables`
-4. **GitHub Copilot** usa herramientas MCP para interactuar con la base de datos
-5. **Auditoría automática** registra cambios en tabla `DBTOOLS_MCP_LOG`
+1. **Docker Compose** levanta PostgreSQL en puerto 5432
+2. **Script de carga** crea base de datos `openbravo` y esquema básico con datos de ejemplo
+3. **Cliente MCP Python** (`mcp_client.py`) se conecta a PostgreSQL usando psycopg2
+4. **GitHub Copilot** usa EXCLUSIVAMENTE el cliente MCP para todas las consultas y actualizaciones
+5. **Auditoría automática** registra cambios en tabla `mcp_operations_log`
+
+### 🔄 Interacción Correcta con MCP
+
+#### ✅ CORRECTO - Usar cliente MCP:
+```bash
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py execute_sql "SELECT * FROM c_bpartner LIMIT 5"
+```
+
+#### ❌ INCORRECTO - SQL directo:
+```bash
+psql postgresql://tad:tad@localhost:5432/openbravo -c "SELECT * FROM c_bpartner LIMIT 5"
+```
+
+---
+
+## 🔍 Validación del Entorno
+
+### Lista de Verificación para Demo
+
+Para considerar el entorno **completamente operativo**:
+
+- [ ] **PostgreSQL ejecutándose**: `docker ps` muestra `openbravo-postgres` con estado `Up`
+- [ ] **Base de datos creada**: Script de carga ejecutado sin errores
+- [ ] **Tablas presentes**: 6 tablas principales cargadas (`AD_CLIENT`, `AD_ORG`, `C_BPARTNER`, `M_PRODUCT`, `DEMO_STATUS`, `MCP_OPERATIONS_LOG`)
+- [ ] **Datos de ejemplo**: 5 socios de negocio y 2 productos disponibles
+- [ ] **Cliente MCP funcional**: `analyze_db_health` devuelve métricas válidas
+- [ ] **Entorno Python**: Virtual environment configurado con psycopg2-binary
+- [ ] **Conectividad verificada**: Scripts de verificación completan exitosamente
+
+### Comandos de Validación Rápida
+
+```bash
+# 1. Verificar containers
+docker ps | grep postgres
+
+# 2. Verificar entorno completo
+./scripts/02_verify_environment_postgres.sh
+
+# 3. Probar cliente MCP
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py analyze_db_health
+
+# 4. Verificar datos básicos
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py execute_sql "SELECT COUNT(*) as total_clientes FROM c_bpartner WHERE iscustomer = 'Y'"
+```
+
+### Métricas Esperadas de Validación
+
+Al ejecutar `analyze_db_health`, debe devolver:
+
+```json
+{
+  "total_tables": 6,
+  "total_clients": 5,
+  "total_products": 2,
+  "credit_exposure": "140000.00",
+  "avg_credit_limit": "28000.000000000000"
+}
+```
+
+*Nota: Los valores pueden variar si se han realizado actualizaciones durante la demo.*
 
 ---
 
 ## Setup del Entorno (Para referencia)
 
-El entorno se configura ejecutando:
-
+### Opción A: Setup Automatizado (Recomendado)
 ```bash
-# Setup completo automatizado
-ant setup && ant install.source
-docker compose up -d
-./scripts/01_load_openbravo.sh
-./scripts/02_verify_environment.sh
+# Usar las tareas de VS Code en este orden:
+# 1. "🐘 Setup PostgreSQL (Recomendado)"
+# 2. "📊 Cargar esquema PostgreSQL"  
+# 3. "🔍 Verificar entorno PostgreSQL"
 ```
 
-O usando VS Code con la tarea **"🚀 Setup completo del entorno"**.
+### Opción B: Setup Manual
+```bash
+# 1. Levantar PostgreSQL
+docker compose up -d
+
+# 2. Cargar esquema
+./scripts/01_load_openbravo_postgres.sh
+
+# 3. Verificar entorno
+./scripts/02_verify_environment_postgres.sh
+
+# 4. Probar cliente MCP
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py analyze_db_health
+```
 
 ---
 
@@ -77,7 +294,8 @@ O usando VS Code con la tarea **"🚀 Setup completo del entorno"**.
 | `AD_ORG` | Organizaciones | `AD_ORG_ID`, `AD_CLIENT_ID`, `NAME` |
 | `C_BPARTNER` | Socios de Negocio (Clientes/Proveedores) | `C_BPARTNER_ID`, `VALUE`, `NAME`, `CREDITLIMIT`, `ISCUSTOMER` |
 | `M_PRODUCT` | Productos | `M_PRODUCT_ID`, `VALUE`, `NAME`, `DESCRIPTION` |
-| `DBTOOLS_MCP_LOG` | Auditoría MCP | `LOG_ID`, `LOG_TIME`, `USERNAME`, `OPERATION`, `TABLE_NAME` |
+| `DEMO_STATUS` | Estado de la Demo | `STATUS`, `LAST_UPDATE` |
+| `MCP_OPERATIONS_LOG` | Auditoría MCP | `ID`, `OPERATION_TYPE`, `TABLE_NAME`, `EXECUTED_AT` |
 
 ### Datos de Ejemplo Incluidos
 
@@ -88,28 +306,29 @@ O usando VS Code con la tarea **"🚀 Setup completo del entorno"**.
 
 ---
 
-## 🔧 Configuración de la Base de Datos Oracle
+## 🔧 Configuración de la Base de Datos PostgreSQL
 
 **Conexión:**
 - **Host**: localhost
-- **Puerto**: 1521  
-- **Servicio**: XEPDB1
-- **Usuario**: openbravo
-- **Contraseña**: ob_pwd
+- **Puerto**: 5432  
+- **Base de datos**: openbravo
+- **Usuario**: tad
+- **Contraseña**: tad
 
 **Cadena de conexión completa:**
 ```
-sqlplus openbravo/ob_pwd@//localhost:1521/XEPDB1
+postgresql://tad:tad@localhost:5432/openbravo
 ```
 
 ---
 
-## 🌐 Servidor SQLcl MCP
+## 🌐 Cliente MCP PostgreSQL
 
 **Configuración:**
-- **URL**: http://localhost:8080
-- **Herramientas disponibles**: `runSQL`, `describeSchema`, `listTables`, etc.
-- **Estado**: Verificar con `curl http://localhost:8080/health`
+- **Archivo**: `mcp_client.py`
+- **Funciones disponibles**: `execute_sql`, `list_schemas`, `list_tables`, `analyze_db_health`
+- **Conexión**: Automática a PostgreSQL local
+- **Uso**: `/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python mcp_client.py <comando>`
 
 ---
 
@@ -123,12 +342,12 @@ sqlplus openbravo/ob_pwd@//localhost:1521/XEPDB1
 SELECT 
     value as codigo_cliente,
     name as nombre_cliente,
-    TO_CHAR(creditlimit, 'L999,999,990.00') as limite_credito
+    creditlimit as limite_credito
 FROM c_bpartner 
 WHERE iscustomer = 'Y' 
     AND creditlimit > 0
 ORDER BY creditlimit DESC 
-FETCH FIRST 5 ROWS ONLY;
+LIMIT 5;
 ```
 
 ### 2. Actualizaciones Controladas
@@ -142,11 +361,8 @@ SELECT name, creditlimit FROM c_bpartner WHERE value = 'BE-001';
 -- Actualizar con comentario
 UPDATE c_bpartner 
 SET creditlimit = 20000,
-    updated = SYSDATE,
-    updatedby = USER
+    updated = NOW()
 WHERE value = 'BE-001';
-
-COMMIT;
 
 -- Verificar cambio
 SELECT name, creditlimit FROM c_bpartner WHERE value = 'BE-001';
@@ -185,14 +401,14 @@ ORDER BY AVG(creditlimit) DESC;
 
 ```sql
 SELECT 
-    TO_CHAR(log_time, 'DD/MM/YYYY HH24:MI:SS') as fecha_hora,
-    username as usuario,
-    operation as operacion,
-    rows_affected as filas_afectadas
-FROM dbtools_mcp_log 
-WHERE table_name = 'C_BPARTNER'
-ORDER BY log_time DESC 
-FETCH FIRST 10 ROWS ONLY;
+    TO_CHAR(executed_at, 'DD/MM/YYYY HH24:MI:SS') as fecha_hora,
+    executed_by as usuario,
+    operation_type as operacion,
+    table_name as tabla
+FROM mcp_operations_log 
+WHERE table_name = 'c_bpartner'
+ORDER BY executed_at DESC 
+LIMIT 10;
 ```
 
 ---
@@ -201,7 +417,7 @@ FETCH FIRST 10 ROWS ONLY;
 
 ### Consultas Seguras
 - ✅ Siempre usar `WHERE` clauses apropiadas para evitar full table scans
-- ✅ Usar `FETCH FIRST n ROWS ONLY` para limitar resultados grandes
+- ✅ Usar `LIMIT n` para limitar resultados grandes
 - ✅ Formatear números con `TO_CHAR` para mejor legibilidad
 - ✅ Incluir campos de auditoría (`CREATED`, `UPDATED`) en SELECT cuando sea relevante
 
@@ -224,52 +440,51 @@ FETCH FIRST 10 ROWS ONLY;
 
 ### Verificación Rápida
 ```bash
-./scripts/02_verify_environment.sh
+./scripts/02_verify_environment_postgres.sh
 ```
 
 ### Reset del Entorno
 ```bash
 # Reset suave (mantiene datos)
-./scripts/03_reset_environment.sh --soft
+./scripts/03_reset_environment_postgres.sh --soft
 
 # Reset completo (DESTRUYE DATOS)  
-./scripts/03_reset_environment.sh --full
+./scripts/03_reset_environment_postgres.sh --full
 ```
 
 ### Tareas de VS Code Disponibles
-- 🚀 **Setup completo del entorno**
-- 🐳 **Levantar entorno Docker**  
-- 📋 **Cargar esquema Openbravo**
-- ✅ **Verificar entorno**
-- 🔄 **Reset suave (reiniciar)**
-- 📊 **Conectar a Oracle XE (sqlplus)**
+- � **Setup PostgreSQL (Recomendado)**
+- � **Cargar esquema PostgreSQL**  
+- 🔍 **Verificar entorno PostgreSQL**
+- 🔄 **Reset suave PostgreSQL**
+- �️ **Conectar a PostgreSQL (psql)**
 
 ---
 
 ## 🚨 Manejo de Errores Comunes
 
-### Error de Conexión Oracle
+### Error de Conexión PostgreSQL
 ```sql
 -- Verificar conectividad
-SELECT 'Conexión exitosa a ' || USER || '@' || SYS_CONTEXT('USERENV', 'DB_NAME') FROM DUAL;
+SELECT 'Conexión exitosa a PostgreSQL como ' || current_user || ' en base de datos ' || current_database();
 ```
 
 ### Error en Consultas
 ```sql
 -- Verificar existencia de tabla
-SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = 'C_BPARTNER';
+SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'c_bpartner';
 
 -- Verificar estructura de tabla
-DESCRIBE C_BPARTNER;
+SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'c_bpartner';
 ```
 
-### Problemas con Servidor MCP
+### Problemas con Cliente MCP
 ```bash
-# Verificar estado del servidor
-curl -f http://localhost:8080/health
+# Verificar entorno Python
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python --version
 
-# Ver logs del contenedor
-docker logs openbravo-sqlcl-mcp
+# Verificar dependencias
+/Users/degr/Documents/GitHub/openbravo-erp/.venv/bin/python -c "import psycopg2; print('psycopg2 OK')"
 ```
 
 ---
@@ -359,130 +574,41 @@ Y se carga el esquema:
 
 ---
 
-## Configuración de la Base de Datos Oracle
+## 📊 Métricas y KPIs de Negocio
 
-El archivo `Openbravo.properties` debe contener la configuración para Oracle:
+Cuando generes reportes, considera estos KPIs empresariales:
 
-```properties
-bbdd.rdbms=ORACLE
-bbdd.driver=oracle.jdbc.OracleDriver
-bbdd.url=jdbc:oracle:thin:@//localhost:1521/XEPDB1
-bbdd.userid=openbravo
-bbdd.password=ob_pwd
-```
-
----
-
-## Ejecución del Servidor SQLcl MCP
-
-Desde el host o contenedor, se lanza:
-
-```bash
-sql -save ob_mcp -savepwd openbravo/ob_pwd@//localhost:1521/XEPDB1
-sql -mcp
-```
-
-Esto expone automáticamente herramientas como `runSQL`, `describeSchema`, `listTables`, etc., disponibles para agentes MCP como Copilot.
+- **Exposición total de crédito**: `SUM(creditlimit)`
+- **Cliente promedio**: `AVG(creditlimit)`  
+- **Distribución por categoría**: Segmentación por rangos de crédito
+- **Clientes activos vs inactivos**: `WHERE isactive = 'Y'`
+- **Mix de productos**: Análisis de `M_PRODUCT`
+- **Actividad de auditoría**: Frecuencia de cambios en `MCP_OPERATIONS_LOG`
 
 ---
 
-## Tareas para el Agente de Codificación
+## 🔄 Flujo de Trabajo Recomendado
 
-### Preparación del Entorno
-
-1. Verificar que `docker compose up -d` levanta Oracle y SQLcl MCP.
-2. Ejecutar script de carga `scripts/01_load_openbravo.sh`.
-3. Probar conectividad con SQLcl usando alias `ob_mcp`.
-
-### Casos de Uso a Implementar
-
-(Se incluirán aparte en archivos `usecase-<id>.md`, ver sección final).
-
-### Consultas y Actualizaciones
-
-El agente debe ser capaz de:
-
-* Consultar datos, p.ej.:
-  ```sql
-  SELECT name, creditlimit FROM c_bpartner WHERE bpartner_id = 'C0001';
-  ```
-
-* Actualizar datos:
-  ```sql
-  UPDATE c_bpartner SET creditlimit = 25000 WHERE bpartner_id = 'C0001';
-  COMMIT;
-  ```
-
-* Verificar logs de auditoría:
-  ```sql
-  SELECT * FROM DBTOOLS$MCP_LOG ORDER BY log_time DESC FETCH FIRST 5 ROWS ONLY;
-  ```
-
-* Ejecutar rollback (si procede):
-  ```sql
-  ROLLBACK;
-  ```
+1. **Entender el Requerimiento**: Interpretar la consulta en lenguaje natural
+2. **Verificar Contexto**: Confirmar que las tablas y datos existen
+3. **Construir Consulta**: Escribir SQL optimizado y seguro
+4. **Ejecutar y Verificar**: Revisar resultados y formato
+5. **Proporcionar Contexto**: Explicar resultados en términos empresariales
+6. **Documentar Cambios**: Si hay actualizaciones, registrar el impacto
 
 ---
 
-## Convenciones y Buenas Prácticas
+## 🎯 Objetivos del Agente
 
-* Usar `ant smartbuild` para reconstrucciones rápidas.
-* Mantener los cambios de esquema mediante `ant export.database`.
-* Añadir tests JUnit si se amplía la lógica de negocio.
-* Evitar modificar directamente el núcleo (`src-core/`), usar módulos en `modules/`.
+Al interactuar con este entorno, el agente debe:
 
----
-
-## Validación del Entorno
-
-Para considerar el entorno correctamente configurado:
-
-- [ ] Oracle XE se inicia correctamente (`docker ps`).
-- [ ] SQLcl MCP responde en el puerto esperado (`sql -mcp` logs OK).
-- [ ] Copilot puede listar tablas y describir esquema (`describeSchema`).
-- [ ] Se puede ejecutar una consulta básica (`runSQL`).
-- [ ] Se puede actualizar un valor y verificar el resultado.
-- [ ] El log de auditoría contiene las operaciones anteriores.
+- ✅ Demostrar capacidades de análisis de datos empresariales
+- ✅ Mantener integridad y seguridad de datos
+- ✅ Proporcionar insights de negocio valiosos
+- ✅ Seguir mejores prácticas de SQL y base de datos
+- ✅ Ser transparente sobre limitaciones y suposiciones
+- ✅ Facilitar el aprendizaje y la comprensión del usuario
 
 ---
 
-## Archivos y Directorios Importantes
-
-* `openbravo-erp/`
-* `scripts/01_load_openbravo.sh`
-* `docker-compose.yml`
-* `sqlcl/Dockerfile`
-* `config/Openbravo.properties`
-* `build/sql/oracle/openbravo_schema.sql`
-
----
-
-## Casos de Uso
-
-Los siguientes casos de uso se definirán individualmente en archivos del tipo:
-
-* `usecase-001-consulta-clientes.md`
-* `usecase-002-modificacion-precios.md`
-
-Cada uno contendrá:
-
-- Descripción funcional
-- Consulta esperada
-- Acción esperada
-- Resultado verificable
-
----
-
-## Notas Finales
-
-Este archivo debe permanecer actualizado como guía de referencia para agentes de codificación automáticos (como GitHub Copilot en modo planificación / agente). Está optimizado para uso con herramientas de IA en entornos reproducibles.
-
-```bash
-# Para ejecutar todo el entorno:
-docker compose up -d
-./scripts/01_load_openbravo.sh
-sql -mcp
-```
-
-Copilot podrá usar `runSQL`, `describeSchema`, etc., vía REST MCP para razonar sobre la BD y actuar.
+**Notas Finales**: Este entorno está optimizado para demostrar las capacidades de agentes de IA trabajando con sistemas ERP reales. Todos los datos son de ejemplo y el entorno es seguro para experimentación y aprendizaje.
